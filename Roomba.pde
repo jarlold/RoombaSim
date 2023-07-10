@@ -13,7 +13,7 @@ class Roomba {
     
     
     // Settings that are based off reality lol
-    float max_roomba_turn_deg = 5;
+    float max_roomba_turn_deg = -5;
     float max_time_steps = 60*60*5; // 60 frame/s * 60s/min * 5 min/run
     
     // Metrics we'll keep track of and give to the neural network
@@ -25,6 +25,10 @@ class Roomba {
     // Meta-parameters that we'll let the genetic algorithm decide
     int collision_lookback_period = 300;
     
+    // Metrics we'll use to evaluate the success of the roomba
+    ArrayList<Float> x_history = new ArrayList<Float>();
+    ArrayList<Float> y_history = new ArrayList<Float>();
+    float score = 0f;
   
     
     
@@ -53,7 +57,17 @@ class Roomba {
       circle(x+sin(bearing) * speed * 10, y + cos(bearing) * speed * 10, 10);
       fill(125, 125, 125);
       
+      
+             
+     // Record the roombas positioning for evaluation later
+     if (time_steps % 2 == 0) {
+         x_history.add(this.x);
+         y_history.add(this.y);
+     }
 
+
+     // Keep track of the score so we know who to send to Android Hell
+     update_score();
       
     }
     
@@ -63,8 +77,7 @@ class Roomba {
    }
 
 
-  public float[] get_input_vector() {
-     
+   public float[] get_input_vector() {
      /*
       We'll feed the neural network certain statistics about
       how are roomba is moving.
@@ -84,28 +97,40 @@ class Roomba {
       TODO:
       - Make the random-noise sometimes negative
       - Change frame based times to seconds
+      - Better regularization
      
      */
      
-    float[] input_vector = {
-      get_num_col_moving_avg(),
-      (360 * (this.bearing / 2 * PI) + random(0, 5)), //360, 
-      time_steps, //max_time_steps,
-      (this.x + random(0, 2*speed)), // / width, // Fuck regularization, all my homies hate regularization
-      (this.y + random(0, 2*speed)), // / height,
-      num_collisions,
-      (time_steps - ttl_collision) 
-    };
-    
-    return input_vector; 
-   }
-   
-   float get_instinctual_bearing_change() {
-   float[] input_vector = get_input_vector();
-    
-    float instinct_bearing_change = instincts.forward(input_vector)[0] ;
-    return instinct_bearing_change * max_roomba_turn_deg;
+      float[] input_vector = {
+          get_num_col_moving_avg(),
+          (360 * (this.bearing / 2 * PI) + random(0, 5)), //360, 
+          time_steps /max_time_steps, 
+          -(this.x + random(0, 2*speed) - width/2) / width, 
+          -(this.y + random(0, 2*speed) - height/2) / height,
+           num_collisions,
+          (time_steps - ttl_collision),
+          sin(time_steps/(max_time_steps/100))
+      };
+      
+       return input_vector; 
+      }
      
+     float get_instinctual_bearing_change() {
+      float[] input_vector = get_input_vector();
+      
+      for (int i = 0; i < input_vector.length; i++)
+         if (Float.isNaN(input_vector[i]))
+           print(i);
+      
+      
+      
+      float instinct_bearing_change = instincts.forward(input_vector)[0] ;
+      if( Float.isNaN( instinct_bearing_change * max_roomba_turn_deg )) {
+        return 0f;
+      } else {
+        return (instinct_bearing_change ) * max_roomba_turn_deg;
+      }
+       
    }
    
    
@@ -135,7 +160,7 @@ class Roomba {
     //Move in the y Direction except if we collide undo that
    this.y += dy;
    if (check_collision())
-       this.y -= dy;
+       this.y -= dy;       
    }
    
    private boolean check_collision() {
@@ -148,14 +173,7 @@ class Roomba {
    }
    
    
-   private void on_collision() {  
-     num_collisions += 1;
-     ttl_collision = time_steps;
-     collision_times.add(
-       time_steps * 1
-     );
-  }
-  
+
   private void do_player_controls() {
     
     switch(this.player_controls) {
@@ -185,7 +203,7 @@ class Roomba {
   void on_mouse_over() {
     
     fill( color(255, 255, 255));
-    rect(0, 0, 300, 150);
+    rect(0, 0, 300, 200);
     float[] iv = get_input_vector();
     
     
@@ -194,8 +212,27 @@ class Roomba {
       text(str(iv[i]), 10, 20*i);
     
     instincts.draw(150 , 150/2- 10, 10);
-      
+    textSize(20);
+    text("Score: " + str(get_score()), 10, 20 * (iv.length));
     
   }
+  
+  float get_score() {
+    return score;
+  }
+  
+  private void on_collision() {  
+     num_collisions += 1;
+     ttl_collision = time_steps;
+     collision_times.add(
+       time_steps * 1
+     );
+  }
+  
+  
+  void update_score() {
+    score = - num_collisions;
+  }
+  
 
 }

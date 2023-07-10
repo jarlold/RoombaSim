@@ -21,7 +21,7 @@ class Layer {
      // Start with random weights
      for (int i = 0; i < output_size; i++) {
        for (int j = 0; j < input_size; j++) {
-          this.weights[i][j] = random(-100f, 100f);
+          this.weights[i][j] = random(-1f, 1f);
        }
     }
   }
@@ -81,6 +81,12 @@ class Layer {
      return out;
   }
 
+
+  public void tweak(float lr) {
+    int i = int(random(0, output_size));
+    int j = int(random(0, input_size));
+    this.weights[i][j] += random(-lr, lr);
+  }
 
 
   

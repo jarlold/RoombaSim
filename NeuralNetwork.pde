@@ -14,11 +14,21 @@ class NeuralNetwork {
   }
 
     
-public float[] forward(float[] in) {
-     float[] working = in;
-     for (Layer l : this.layers) 
-       working = l.forward(working);
-     return working;
+  public float[] forward(float[] in) {
+       float[] working = in;
+       for (Layer l : this.layers) 
+         working = l.forward(working);
+       return working;
+    }
+    
+    
+  public void tweak(float lr) {
+    // Modify a weight by some random amount
+    int l = int(random(0, layers.length));
+    layers[l].tweak(lr);
+    
+    // Choose to randomly drop or add a layer
+    //boolean drop = (int(random(0, 1)) == 0);
   }
   
   
