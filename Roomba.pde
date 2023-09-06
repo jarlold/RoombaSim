@@ -44,8 +44,21 @@ class Roomba {
       this.instincts = instincts;
     }
   
+   public Roomba(float x, float y, float size, ArrayList<Wall> walls, ControlMode pc, NeuralNetwork instincts) {
+      this.x = x;
+      this.y = y;
+      this.size = size;
+      this.c = color( (int)random(125, 255),(int)random(125, 255),(int)random(125, 255)); 
+      this.speed = 1f;
+      this.bearing = 0f;
+      this.walls = walls;
+      this.player_controls = pc;
+      this.instincts = instincts;
+    }
+  
+  
+  
     public void draw() {      
-      time_steps += 1;
 
       if (abs(mouseX - x) <= size & abs(mouseY - y) <= size)
         on_mouse_over();
@@ -58,16 +71,6 @@ class Roomba {
       fill(125, 125, 125);
       
       
-             
-     // Record the roombas positioning for evaluation later
-     if (time_steps % 2 == 0) {
-         x_history.add(this.x);
-         y_history.add(this.y);
-     }
-
-
-     // Keep track of the score so we know who to send to Android Hell
-     update_score();
       
     }
     
@@ -149,6 +152,20 @@ class Roomba {
 
    
    public void forward() {    
+     time_steps += 1;
+    
+     // Record the roombas positioning for evaluation later
+     if (time_steps % 2 == 0) {
+         x_history.add(this.x);
+         y_history.add(this.y);
+     }
+
+
+     // Keep track of the score so we know who to send to Android Hell
+     update_score();
+
+     
+     
     float dx = sin(bearing) * speed + random(0.5);
     float dy = cos(bearing) * speed + random(0.5);
     
@@ -178,9 +195,9 @@ class Roomba {
     
     switch(this.player_controls) {
       case MOUSE:     
-        float dx = chumly.x - mouseX;
-        float dy = chumly.y - mouseY;
-        chumly.bearing = PI + atan2( dx, dy);
+        float dx = this.x - mouseX;
+        float dy = this.y - mouseY;
+        this.bearing = PI + atan2( dx, dy);
       break;
       
       case KEYBOARD:

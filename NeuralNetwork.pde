@@ -1,16 +1,13 @@
 class NeuralNetwork {
  
   Layer[] layers;
-  
-  public NeuralNetwork(int[] layer_sizes, ActivationFunction[] layer_activations) {
-    for (int i = 0; i < layer_sizes.length - 1; i++)
-      layers[i] = new Layer(layer_sizes[i], layer_sizes[i+1], layer_activations[i]);
-  }
     
-
-  
- public NeuralNetwork(Layer[] layers) {
+  public NeuralNetwork(Layer[] layers) {
    this.layers = layers; 
+  }
+  
+  public NeuralNetwork(NeuralNetwork clone_me) {
+    this.layers = clone_me.layers;
   }
 
     
