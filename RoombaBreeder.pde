@@ -12,7 +12,7 @@ class RoombaBreeder {
   final int spawn_location_x = 400;
   final int spawn_location_y = 300;
 
-  final int num_timesteps = 1000;
+  final int num_timesteps = 5000;
   final int num_test_cycles = 10;
   float lr = 0.5;
 
@@ -72,10 +72,10 @@ class RoombaBreeder {
   public ArrayList<NeuralNetwork> create_initial_generation() {
     // We'll use the same architecture for all the roombas for now
     Layer[] nn_layers = {
-      new Layer(INPUT_VECTOR_SIZE, 7, ActivationFunction.TANH),
+      new Layer(INPUT_VECTOR_SIZE, 7, ActivationFunction.SIGMOID),
       new Layer(7, 6, ActivationFunction.TANH),
       new Layer(6, 5, ActivationFunction.TANH),
-      new Layer(5, OUTPUT_VECTOR_SIZE, ActivationFunction.TANH)
+      new Layer(5, OUTPUT_VECTOR_SIZE, ActivationFunction.RELU)
     };
     // We'll create our first roomba, Adam
     NeuralNetwork adam = new NeuralNetwork(nn_layers);
@@ -135,6 +135,10 @@ class RoombaBreeder {
       current_generation = previous_generation;
     }
     
+  }
+  
+  public void fast_forward(int n_cycles) {
+    for (int i = 0; i < n_cycles; i++) genetic_algorithm_cycle();
   }
 
 }

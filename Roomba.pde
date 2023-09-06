@@ -166,8 +166,8 @@ class Roomba {
 
      
      
-    float dx = sin(bearing) * speed + random(0.5);
-    float dy = cos(bearing) * speed + random(0.5);
+    float dx = sin(bearing) * speed + random(-0.5, 0.5);
+    float dy = cos(bearing) * speed + random(-0.5, 0.5);
     
     // Move in the X direction except if we collide undo that
     this.x += dx;  
