@@ -1,6 +1,6 @@
 ArrayList<Wall> walls;
 
-RoombaBreeder rb ;
+NicheBreeder rb ;
 
 // Stuff used for our local visualization
 ArrayList<Roomba> roombas;
@@ -22,7 +22,7 @@ void setup() {
    
 
    // Then we'll evolve some roombas
-   rb = new RoombaBreeder(walls, 0.1f);
+   rb = new NicheBreeder(walls, 0.1f);
    rb.initialize_genetic_algorithm();
    rb.fast_forward(1000);
    visualize_generation(rb.current_generation);

@@ -250,7 +250,7 @@ class Roomba {
   private void detect_dust() {
     for (Dust d : dusts) {
       if (d.try_to_eat(this))
-        score += 150;
+        score += 350;
     }
   }
   

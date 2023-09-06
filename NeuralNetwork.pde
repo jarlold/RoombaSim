@@ -29,7 +29,6 @@ class NeuralNetwork {
   }
   
   
-  
   void draw(float x, float y, float scale) {
    float centre_y = (layers[0].input_size * scale * 1.25)/2;
    for (int j = 0; j < layers[0].input_size; j++) {
