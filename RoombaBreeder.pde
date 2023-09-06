@@ -2,6 +2,7 @@ class RoombaBreeder {
   int max_layers = 12;
   int max_layer_size = 30;
   ArrayList<Wall> walls;
+  ArrayList<Dust> dusts;
 
   final int INPUT_VECTOR_SIZE = 8;
   final int OUTPUT_VECTOR_SIZE = 1;
@@ -12,7 +13,8 @@ class RoombaBreeder {
   final int spawn_location_x = 400;
   final int spawn_location_y = 300;
 
-  final int num_timesteps = 5000;
+  final int pop_size = 10;
+  final int num_timesteps = 2000;
   final int num_test_cycles = 10;
   float lr = 0.5;
 
@@ -25,10 +27,11 @@ class RoombaBreeder {
   public RoombaBreeder(ArrayList<Wall> walls, float learning_rate) {
     this.walls = walls;
     this.lr = learning_rate;
+    randomize_dust(20);
   }
   
   public Roomba neural_network_to_roomba(NeuralNetwork instincts) {
-    return new Roomba(spawn_location_x, spawn_location_y, 15, walls, ControlMode.INSTINCT, instincts);
+    return new Roomba(spawn_location_x, spawn_location_y, 15, walls, dusts, ControlMode.INSTINCT, instincts);
   }
     
 
@@ -53,6 +56,8 @@ class RoombaBreeder {
     Roomba r = neural_network_to_roomba(instincts);
     float total_score = 0;
     for (int k = 0; k < num_test_cycles; k++) {
+      // Make a mess of my room so they can clean it up
+      randomize_dust(20);
       for (int i = 0; i < num_timesteps; i++) {
         r.forward();
       }
@@ -72,16 +77,23 @@ class RoombaBreeder {
   public ArrayList<NeuralNetwork> create_initial_generation() {
     // We'll use the same architecture for all the roombas for now
     Layer[] nn_layers = {
-      new Layer(INPUT_VECTOR_SIZE, 7, ActivationFunction.SIGMOID),
+      new Layer(INPUT_VECTOR_SIZE, 7, ActivationFunction.TANH),
       new Layer(7, 6, ActivationFunction.TANH),
       new Layer(6, 5, ActivationFunction.TANH),
-      new Layer(5, OUTPUT_VECTOR_SIZE, ActivationFunction.RELU)
+      new Layer(5, OUTPUT_VECTOR_SIZE, ActivationFunction.TANH)
     };
     // We'll create our first roomba, Adam
     NeuralNetwork adam = new NeuralNetwork(nn_layers);
     // Then we'll put him out to stud (with himself)
-    ArrayList<NeuralNetwork> new_gen = asexual_reproduction(adam, 20);
+    ArrayList<NeuralNetwork> new_gen = asexual_reproduction(adam, pop_size);
     return new_gen;
+  }
+  
+  public void randomize_dust(int num_particles) {
+   // Add some dust to our simulation
+   dusts = new ArrayList<Dust>();
+   for (int i = 0; i < num_particles; i ++)
+     dusts.add(new Dust(random(0, 800), random(0, 600)));
   }
   
   public void initialize_genetic_algorithm() {    
@@ -110,7 +122,7 @@ class RoombaBreeder {
   // Does one step in the genetic algorithm
   public void genetic_algorithm_cycle() {
     // Set him out to stud (with himself)
-    ArrayList<NeuralNetwork> babies = asexual_reproduction(best_roomba, 15);
+    ArrayList<NeuralNetwork> babies = asexual_reproduction(best_roomba, pop_size);
     
     // Now we'll test those babies with the harsh world of simulated reality.
     float[] scores = test_generation(babies);
@@ -129,7 +141,7 @@ class RoombaBreeder {
         }
       }
       // And everytime we have a success, we'll lower the learning rate by a little bit
-      lr = 0.95 * lr;
+      lr = 0.99 * lr;
     } else {
       // But if all the children are dissapointments, we'll throw them off a cliff like in 300
       current_generation = previous_generation;
@@ -138,7 +150,12 @@ class RoombaBreeder {
   }
   
   public void fast_forward(int n_cycles) {
-    for (int i = 0; i < n_cycles; i++) genetic_algorithm_cycle();
+    for (int i = 0; i < n_cycles; i++) {
+      genetic_algorithm_cycle();
+      print("BEST SCORE ");
+      print(best_score);
+      print("\n");
+    };
   }
 
 }

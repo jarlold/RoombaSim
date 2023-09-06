@@ -7,6 +7,7 @@ class Roomba {
     float speed;
     float bearing;
     ArrayList<Wall> walls;
+    ArrayList<Dust> dusts;
     float dbearing = 0;
     ControlMode player_controls;
     public NeuralNetwork instincts;
@@ -44,7 +45,7 @@ class Roomba {
       this.instincts = instincts;
     }
   
-   public Roomba(float x, float y, float size, ArrayList<Wall> walls, ControlMode pc, NeuralNetwork instincts) {
+   public Roomba(float x, float y, float size, ArrayList<Wall> walls, ArrayList<Dust> dusts, ControlMode pc, NeuralNetwork instincts) {
       this.x = x;
       this.y = y;
       this.size = size;
@@ -54,6 +55,7 @@ class Roomba {
       this.walls = walls;
       this.player_controls = pc;
       this.instincts = instincts;
+      this.dusts = dusts;
     }
   
   
@@ -165,7 +167,6 @@ class Roomba {
      update_score();
 
      
-     
     float dx = sin(bearing) * speed + random(-0.5, 0.5);
     float dy = cos(bearing) * speed + random(-0.5, 0.5);
     
@@ -235,7 +236,7 @@ class Roomba {
   }
   
   float get_score() {
-    return score;
+    return score - num_collisions;
   }
   
   private void on_collision() {  
@@ -246,9 +247,16 @@ class Roomba {
      );
   }
   
+  private void detect_dust() {
+    for (Dust d : dusts) {
+      if (d.try_to_eat(this))
+        score += 150;
+    }
+  }
+  
   
   void update_score() {
-    score = - num_collisions;
+    detect_dust();
   }
   
 
