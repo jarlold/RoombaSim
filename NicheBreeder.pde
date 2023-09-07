@@ -136,6 +136,9 @@ class NicheBreeder {
     
     // If one of the babies does as well or better than his father, he will inherit the throne
     if (generations_best_score >= best_score) {
+      print("BEST SCORE: ");
+      print(best_score);
+      print("\n");
       best_score = generations_best_score;
       for (int i = 0; i < scores.length; i++) {
         if (scores[i] == best_score) {
@@ -155,9 +158,6 @@ class NicheBreeder {
   public void fast_forward(int n_cycles) {
     for (int i = 0; i < n_cycles; i++) {
       genetic_algorithm_cycle();
-      print("BEST SCORE ");
-      print(best_score);
-      print("\n");
     };
   }
 

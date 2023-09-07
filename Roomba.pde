@@ -236,7 +236,7 @@ class Roomba {
   }
   
   float get_score() {
-    return score - num_collisions;
+    return score;// - num_collisions;
   }
   
   private void on_collision() {  
