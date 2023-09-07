@@ -1,6 +1,4 @@
 class NicheBreeder {
-  int max_layers = 12;
-  int max_layer_size = 30;
   ArrayList<Wall> walls;
   ArrayList<Dust> dusts;
 
@@ -17,12 +15,16 @@ class NicheBreeder {
   final int num_timesteps = 2000;
   final int num_test_cycles = 10;
   float lr = 0.5;
+  int mutation_rate = 1;
 
   ArrayList<NeuralNetwork> current_generation;
   ArrayList<NeuralNetwork> previous_generation;
 
   NeuralNetwork best_roomba;
   float best_score;
+  int num_generations = 0; 
+  int num_successful_generations = 0;
+  int num_bad_generations_row = 0;
 
   public NicheBreeder(ArrayList<Wall> walls, float learning_rate) {
     this.walls = walls;
@@ -38,9 +40,21 @@ class NicheBreeder {
   // Not actually gaussian lol
   public NeuralNetwork gaussian_mutated_clone(NeuralNetwork initial) {
     NeuralNetwork mutated = new NeuralNetwork(initial);
-    mutated.tweak(lr);
+    for (int i = 0 ; i < 20; i++)
+      mutated.tweak(lr);
     return mutated;
   }  
+  
+  private void do_rechenberg_rule() {
+    lr *= 0.95;
+    /*
+    Makes them evolve to do stupid things instead- same average scores though, weird
+    if ( (float) num_successful_generations/ (float)num_generations > 1f/5f) {
+      lr *= 1.1;
+    } else {
+      lr += 0.99;
+    } */
+  }
   
   public ArrayList<NeuralNetwork> asexual_reproduction(NeuralNetwork daddy, int num_babies) {
     ArrayList<NeuralNetwork> babies = new ArrayList<NeuralNetwork>();
@@ -124,6 +138,9 @@ class NicheBreeder {
   
   // Does one step in the genetic algorithm
   public void genetic_algorithm_cycle() {
+    // For Rechenberg rule
+    num_generations++;
+    
     // Set him out to stud (with himself)
     ArrayList<NeuralNetwork> babies = asexual_reproduction(best_roomba, pop_size);
     
@@ -136,9 +153,13 @@ class NicheBreeder {
     
     // If one of the babies does as well or better than his father, he will inherit the throne
     if (generations_best_score >= best_score) {
+      // Hurray success!
+      num_successful_generations++;
+      
       print("BEST SCORE: ");
       print(best_score);
       print("\n");
+      num_bad_generations_row = 0;
       best_score = generations_best_score;
       for (int i = 0; i < scores.length; i++) {
         if (scores[i] == best_score) {
@@ -146,11 +167,13 @@ class NicheBreeder {
           break;
         }
       }
-      // And everytime we have a success, we'll lower the learning rate by a little bit
-      lr = 0.99 * lr;
+      // We adjust the mutation rate to follow the rechenberg principle
+      do_rechenberg_rule();
+      
     } else {
       // But if all the children are dissapointments, we'll throw them off a cliff like in 300
       current_generation = previous_generation;
+      num_bad_generations_row++;
     }
     
   }
@@ -159,6 +182,11 @@ class NicheBreeder {
     for (int i = 0; i < n_cycles; i++) {
       genetic_algorithm_cycle();
     };
+  }
+  
+  public void optimize_niche(int num_bad_cycles_to_break) {
+    while (num_bad_generations_row < num_bad_cycles_to_break)
+      genetic_algorithm_cycle();
   }
 
 }
