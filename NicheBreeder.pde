@@ -48,7 +48,6 @@ class NicheBreeder {
   private void do_rechenberg_rule() {
    lr *= 0.999;
     
-  //  Makes them evolve to do stupid things instead- same average scores though, weird
     if ( (float) num_successful_generations/ (float)num_generations > 1f/5f) {
       mutation_rate--;
     } else {
