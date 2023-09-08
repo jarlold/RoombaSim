@@ -20,7 +20,7 @@ void setup() {
    walls.add(new Wall(width, - 10, 10, height + 10));
    walls.add(new Wall(0, height , width + 10, 10));
    
-   rb = search_niches(1, 2000);
+   rb = search_niches(4, 400);
    ArrayList<NeuralNetwork> best_of_gen = new ArrayList<NeuralNetwork>();
    best_of_gen.add(rb.best_roomba);
    visualize_generation(best_of_gen);
@@ -38,8 +38,8 @@ NicheBreeder search_niches(int num_to_search, int num_gens) {
    for (int i = 0; i < num_to_search-1; i++) {
      NicheBreeder rb2 = new NicheBreeder(walls, 0.1f);
      rb2.initialize_genetic_algorithm();
-    // rb2.optimize_niche(num_gens);
-     rb2.fast_forward(num_gens);
+     rb2.optimize_niche(num_gens);
+     //rb2.fast_forward(num_gens);
 
      // If it's better, he becomes the new world champion
     if (rb2.best_score > rb1.best_score)

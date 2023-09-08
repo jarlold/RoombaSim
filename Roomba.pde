@@ -236,7 +236,7 @@ class Roomba {
   }
   
   float get_score() {
-    return score - (num_collisions);
+    return score - (num_collisions/4);
   }
   
   private void on_collision() {  
@@ -250,7 +250,7 @@ class Roomba {
   private void detect_dust() {
     for (Dust d : dusts) {
       if (d.try_to_eat(this))
-        score += 300;
+        score += 50;
     }
   }
   

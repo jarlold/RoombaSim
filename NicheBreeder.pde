@@ -11,11 +11,11 @@ class NicheBreeder {
   final int spawn_location_x = 400;
   final int spawn_location_y = 300;
 
-  final int pop_size = 10;
+  final int pop_size = 15;
   final int num_timesteps = 2000;
-  final int num_test_cycles = 10;
+  final int num_test_cycles = 5;
   float lr = 0.5;
-  int mutation_rate = 1;
+  int mutation_rate = 5;
 
   ArrayList<NeuralNetwork> current_generation;
   ArrayList<NeuralNetwork> previous_generation;
@@ -29,7 +29,7 @@ class NicheBreeder {
   public NicheBreeder(ArrayList<Wall> walls, float learning_rate) {
     this.walls = walls;
     this.lr = learning_rate;
-    randomize_dust(20);
+    randomize_dust(50);
   }
   
   public Roomba neural_network_to_roomba(NeuralNetwork instincts) {
@@ -40,20 +40,20 @@ class NicheBreeder {
   // Not actually gaussian lol
   public NeuralNetwork gaussian_mutated_clone(NeuralNetwork initial) {
     NeuralNetwork mutated = new NeuralNetwork(initial);
-    for (int i = 0 ; i < 20; i++)
+    for (int i = 0 ; i < mutation_rate; i++)
       mutated.tweak(lr);
     return mutated;
   }  
   
   private void do_rechenberg_rule() {
-    lr *= 0.95;
-    /*
-    Makes them evolve to do stupid things instead- same average scores though, weird
+   lr *= 0.999;
+    
+  //  Makes them evolve to do stupid things instead- same average scores though, weird
     if ( (float) num_successful_generations/ (float)num_generations > 1f/5f) {
-      lr *= 1.1;
+      mutation_rate--;
     } else {
-      lr += 0.99;
-    } */
+      mutation_rate++;
+    } 
   }
   
   public ArrayList<NeuralNetwork> asexual_reproduction(NeuralNetwork daddy, int num_babies) {
@@ -73,7 +73,7 @@ class NicheBreeder {
     float total_score = 0;
     for (int k = 0; k < num_test_cycles; k++) {
       // Make a mess of my room so they can clean it up
-      randomize_dust(20);
+      randomize_dust(50);
       for (int i = 0; i < num_timesteps; i++) {
         r.forward();
       }
@@ -167,8 +167,6 @@ class NicheBreeder {
           break;
         }
       }
-      // We adjust the mutation rate to follow the rechenberg principle
-      do_rechenberg_rule();
       
     } else {
       // But if all the children are dissapointments, we'll throw them off a cliff like in 300
@@ -176,11 +174,21 @@ class NicheBreeder {
       num_bad_generations_row++;
     }
     
+     // We adjust the mutation rate to follow the rechenberg principle
+    //do_rechenberg_rule();
+    
   }
   
   public void fast_forward(int n_cycles) {
     for (int i = 0; i < n_cycles; i++) {
       genetic_algorithm_cycle();
+      if (i % 100 == 0) {
+        print("META ");
+        print(mutation_rate);
+        print(" ");
+        print(lr);
+        print("\n");
+      }
     };
   }
   
