@@ -20,7 +20,7 @@ void setup() {
    walls.add(new Wall(width, - 10, 10, height + 10));
    walls.add(new Wall(0, height , width + 10, 10));
    
-   rb = search_niches(5, 300);
+   rb = search_niches(4, 400);
    
    
 
