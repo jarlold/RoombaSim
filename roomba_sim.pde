@@ -5,7 +5,7 @@ NicheBreeder rb ;
 // Stuff used for our local visualization
 ArrayList<Roomba> roombas;
 int frames = 0;
-int visualization_length = 10000;
+int visualization_length = 0;
 boolean currently_rendering_visualization = false;
 
 void setup() {
@@ -20,7 +20,10 @@ void setup() {
    walls.add(new Wall(width, - 10, 10, height + 10));
    walls.add(new Wall(0, height , width + 10, 10));
    
-   rb = search_niches(4, 400);
+   rb = search_niches(5, 300);
+   
+   
+
    ArrayList<NeuralNetwork> best_of_gen = new ArrayList<NeuralNetwork>();
    best_of_gen.add(rb.best_roomba);
    visualize_generation(best_of_gen);
@@ -44,6 +47,7 @@ NicheBreeder search_niches(int num_to_search, int num_gens) {
      // If it's better, he becomes the new world champion
     if (rb2.best_score > rb1.best_score)
       rb1 = rb2;
+      print("New best niche found!\n");
    }
    return rb1;
 }
@@ -79,8 +83,7 @@ void draw() {
   
   
   // Until the simulation ends, then erase them all :c
-  if (visualization_length > 0 ) frames++;
-  if (frames >= visualization_length) {
+  if (frames >= visualization_length & visualization_length > 0) {
     roombas = new ArrayList<Roomba>();
     currently_rendering_visualization = false;
   }

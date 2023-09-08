@@ -12,9 +12,9 @@ class NicheBreeder {
   final int spawn_location_y = 300;
 
   final int pop_size = 15;
-  final int num_timesteps = 2000;
+  int num_timesteps = 2000;
   final int num_test_cycles = 5;
-  float lr = 0.5;
+  float lr;
   int mutation_rate = 5;
 
   ArrayList<NeuralNetwork> current_generation;
@@ -77,9 +77,16 @@ class NicheBreeder {
       for (int i = 0; i < num_timesteps; i++) {
         r.forward();
       }
-      total_score = r.get_score();
+      total_score = get_roomba_score(r);
     }
     return total_score /= num_test_cycles;
+  }
+  
+  public float get_roomba_score(Roomba r) {
+    if (r.dust_eaten <= 5)
+      return r.dust_eaten;
+    else
+      return r.dust_eaten*150 -r.num_collisions/10;
   }
   
   public float[] test_generation(ArrayList<NeuralNetwork> generation) {

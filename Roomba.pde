@@ -29,7 +29,7 @@ class Roomba {
     // Metrics we'll use to evaluate the success of the roomba
     ArrayList<Float> x_history = new ArrayList<Float>();
     ArrayList<Float> y_history = new ArrayList<Float>();
-    float score = 0f;
+    int dust_eaten = 0;
   
     
     
@@ -164,7 +164,7 @@ class Roomba {
 
 
      // Keep track of the score so we know who to send to Android Hell
-     update_score();
+     check_dust();
 
      
     float dx = sin(bearing) * speed + random(-0.5, 0.5);
@@ -230,14 +230,9 @@ class Roomba {
       text(str(iv[i]), 10, 20*i);
     
     instincts.draw(150 , 150/2- 10, 10);
-    textSize(20);
-    text("Score: " + str(get_score()), 10, 20 * (iv.length));
-    
+    textSize(20);    
   }
   
-  float get_score() {
-    return score - (num_collisions/4);
-  }
   
   private void on_collision() {  
      num_collisions += 1;
@@ -247,16 +242,11 @@ class Roomba {
      );
   }
   
-  private void detect_dust() {
+  private void check_dust() {
     for (Dust d : dusts) {
       if (d.try_to_eat(this))
-        score += 50;
+        dust_eaten += 1;
     }
-  }
-  
-  
-  void update_score() {
-    detect_dust();
   }
   
 
