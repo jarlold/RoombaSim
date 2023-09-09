@@ -12,7 +12,7 @@ class NicheBreeder {
   final int spawn_location_y = 300;
 
   final int pop_size = 15;
-  int num_timesteps = 2000;
+  int num_timesteps = 2000*2;
   final int num_test_cycles = 5;
   float lr;
   int mutation_rate = 5;
