@@ -11,16 +11,23 @@ boolean currently_rendering_visualization = false;
 void setup() {
    randomSeed(42);
    size(800, 600); 
+   
    // Add some furniture to our simulation
    walls = new ArrayList<Wall>();   
-   walls.add(new Wall(100, 200, 200, 200));
-   walls.add(new Wall(450, 250, 50, 50));
+   walls.add(new Wall(0, 200, 200, 200));
+   walls.add(new Wall(200, 200, 200, 30));
+   walls.add(new Wall(600, 200, 200, 30));
+   walls.add(new Wall(0, 200+270, 50, 50));
+   walls.add(new Wall(150, 200+270, 50, 50));
+   walls.add(new Wall(150, 0, 50, 130));
+   
+   // Just the borders
    walls.add(new Wall(-10, -10, 10, height + 10));
    walls.add(new Wall(-10, -10, width + 10, 10));
    walls.add(new Wall(width, - 10, 10, height + 10));
    walls.add(new Wall(0, height , width + 10, 10));
    
-   rb = search_niches(4, 400);
+   rb = search_niches(5, 400);
    
    
 
