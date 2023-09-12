@@ -5,6 +5,7 @@ class Dust {
   ArrayList<Roomba> eaten_by;
   int pulse_ticks = 0;
   boolean pulsing = false;
+  color pulsing_color = color(0, 255, 0);
   
   public Dust(float x, float y) {
     this.x = x;
@@ -16,19 +17,26 @@ class Dust {
     eaten_by = new ArrayList<Roomba>();
   }
   
-  public boolean collides_with(Roomba r) {
+  private boolean collides_with(Roomba r) {
     float our_radius = (r.size + size)/2;
-    return !eaten_by.contains(r) & abs(r.x - x) <= our_radius & abs(r.y - y) <= our_radius; 
+    return abs(r.x - x) <= our_radius & abs(r.y - y) <= our_radius; 
   }
   
-  public boolean try_to_eat(Roomba r) {
+  public int try_to_eat(Roomba r) {
     if (collides_with(r)) {
-      eaten_by.add(r);
       pulsing = true;
-      return true;
-    } else {
-      return false;
+      if (eaten_by.contains(r)) {
+        // Pulse red if we've eaten it before (and the roomba loses points)
+        pulsing_color = color(255, 0, 0);
+        return -1;
+      } else {
+        // Pulse green if we've never eaten it (and the roomba is gaining points)
+        pulsing_color = (0, 255, 0);
+        eaten_by.add(r);
+        return 1;
+      }
     }
+    return 0;
   }
   
   public void draw() {
@@ -39,7 +47,7 @@ class Dust {
       fill(color(255));
     } else if(pulsing) {
       pulse_ticks++;
-      fill(color(255, 0, 0));
+      fill(pulsing_color);
     }
     
     circle(x, y, size);
