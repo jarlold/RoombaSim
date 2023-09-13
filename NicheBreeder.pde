@@ -82,7 +82,7 @@ class NicheBreeder {
   }
   
   public float get_roomba_score(Roomba r) {
-    return r.dust_eaten- r.num_collisions/8;
+    return r.dust_eaten- r.num_collisions/6;
   }
   
   public float[] test_generation(ArrayList<NeuralNetwork> generation) {

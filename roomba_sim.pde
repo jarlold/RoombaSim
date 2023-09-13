@@ -29,7 +29,7 @@ void setup() {
    
    
    background(0);
-   rb = search_niches(10, 400);
+   rb = search_niches(10, 500);
    
    
 

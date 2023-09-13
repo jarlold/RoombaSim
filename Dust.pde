@@ -6,6 +6,7 @@ class Dust {
   int pulse_ticks = 0;
   boolean pulsing = false;
   color pulsing_color = color(0, 255, 0);
+  int color_intensity = 255;
   
   public Dust(float x, float y) {
     this.x = x;
@@ -24,17 +25,21 @@ class Dust {
   
   public int try_to_eat(Roomba r) {
     if (collides_with(r)) {
-      pulsing = true;
       if (eaten_by.contains(r)) {
+        color_intensity += 25;
         // Pulse red if we've eaten it before (and the roomba loses points)
-        pulsing_color = color(255, 0, 0);
+        if (!pulsing) pulsing_color = color(255, 0, 0);
+        pulsing = true;
         return -1;
       } else {
         // Pulse green if we've never eaten it (and the roomba is gaining points)
-        pulsing_color = (0, 255, 0);
+        if (!pulsing) pulsing_color = color(0, 255, 0);
         eaten_by.add(r);
+        pulsing = true;
         return 1;
       }
+      
+      
     }
     return 0;
   }
@@ -44,7 +49,7 @@ class Dust {
     if (pulse_ticks > 40) {
       pulsing = false;
       pulse_ticks = 0;
-      fill(color(255));
+      fill(color( color_intensity < 255 ? color_intensity : 255  ));
     } else if(pulsing) {
       pulse_ticks++;
       fill(pulsing_color);

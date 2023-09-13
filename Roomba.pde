@@ -244,8 +244,7 @@ class Roomba {
   
   private void check_dust() {
     for (Dust d : dusts) {
-      if (d.try_to_eat(this))
-        dust_eaten += 1;
+      dust_eaten += d.try_to_eat(this);
     }
   }
   
