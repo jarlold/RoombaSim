@@ -7,7 +7,7 @@ class Roomba {
     float speed;
     float bearing;
     ArrayList<Wall> walls;
-    ArrayList<Dust> dusts;
+    Dust[] dusts;
     float dbearing = 0;
     ControlMode player_controls;
     public NeuralNetwork instincts;
@@ -45,7 +45,7 @@ class Roomba {
       this.instincts = instincts;
     }
   
-   public Roomba(float x, float y, float size, ArrayList<Wall> walls, ArrayList<Dust> dusts, ControlMode pc, NeuralNetwork instincts) {
+   public Roomba(float x, float y, float size, ArrayList<Wall> walls, Dust[] dusts, ControlMode pc, NeuralNetwork instincts) {
       this.x = x;
       this.y = y;
       this.size = size;
@@ -114,7 +114,7 @@ class Roomba {
           -(this.y + random(0, 2*speed) - height/2) / height,
            num_collisions,
           (time_steps - ttl_collision),
-          sin(time_steps/(max_time_steps/100))
+          100*sin(time_steps/(max_time_steps/1000))
       };
       
        return input_vector; 

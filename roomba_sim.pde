@@ -29,9 +29,7 @@ void setup() {
    
    
    background(0);
-   rb = search_niches(10, 500);
-   
-   
+   rb = search_niches(4, 500);
 
    ArrayList<NeuralNetwork> best_of_gen = new ArrayList<NeuralNetwork>();
    best_of_gen.add(rb.best_roomba);
@@ -50,16 +48,42 @@ NicheBreeder search_niches(int num_to_search, int num_gens) {
    for (int i = 0; i < num_to_search-1; i++) {
      NicheBreeder rb2 = new NicheBreeder(walls, 0.1f);
      rb2.initialize_genetic_algorithm();
-     rb2.optimize_niche(num_gens);
-     //rb2.fast_forward(num_gens);
+     //rb2.optimize_niche(num_gens);
+     rb2.fast_forward(num_gens);
 
      // If it's better, he becomes the new world champion
-    if (rb2.best_score > rb1.best_score)
+    if (rb2.best_score > rb1.best_score) {
       rb1 = rb2;
       print("New best niche found!\n");
+    }
    }
    return rb1;
 }
+
+NicheBreeder search_niches_threaded(int num_threads) {
+  NicheBreeder[] niches = new NicheBreeder[num_threads];
+  for (int i = 0; i < num_threads; i++) {
+    niches[i] = new NicheBreeder(walls, 0.1f);
+    niches[i].start();
+    System.out.println("Started new thread!");
+  }
+  
+  while (niches[num_threads-1].isAlive())
+    System.out.print(".");
+  
+  NicheBreeder best_niche = niches[0];
+  float best_score = 0;
+  for (NicheBreeder i : niches) {
+    if (i.best_score > best_score) {
+      best_score = i.best_score;
+      best_niche = i;
+    }
+  }
+  
+  return best_niche;
+}
+
+
 void visualize_generation(ArrayList<NeuralNetwork> solutions) {
    frames = 0;
    roombas = new ArrayList<Roomba>();

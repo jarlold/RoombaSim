@@ -1,6 +1,6 @@
-class NicheBreeder {
+class NicheBreeder extends Thread{
   ArrayList<Wall> walls;
-  ArrayList<Dust> dusts;
+  Dust[] dusts;
 
   final int INPUT_VECTOR_SIZE = 8;
   final int OUTPUT_VECTOR_SIZE = 1;
@@ -45,16 +45,6 @@ class NicheBreeder {
     return mutated;
   }  
   
-  private void do_rechenberg_rule() {
-   lr *= 0.999;
-    
-    if ( (float) num_successful_generations/ (float)num_generations > 1f/5f) {
-      mutation_rate--;
-    } else {
-      mutation_rate++;
-    } 
-  }
-  
   public ArrayList<NeuralNetwork> asexual_reproduction(NeuralNetwork daddy, int num_babies) {
     ArrayList<NeuralNetwork> babies = new ArrayList<NeuralNetwork>();
     for (int i = 0; i < num_babies; i++) {
@@ -82,7 +72,7 @@ class NicheBreeder {
   }
   
   public float get_roomba_score(Roomba r) {
-    return r.dust_eaten- r.num_collisions/6;
+    return r.dust_eaten- r.num_collisions/10;
   }
   
   public float[] test_generation(ArrayList<NeuralNetwork> generation) {
@@ -110,9 +100,9 @@ class NicheBreeder {
   
   private void randomize_dust(int num_particles) {
    // Add some dust to our simulation
-   dusts = new ArrayList<Dust>();
+   dusts = new Dust[num_particles];
    for (int i = 0; i < num_particles; i ++)
-     dusts.add(new Dust(random(0, 800), random(0, 600)));
+     dusts[i] = new Dust(random(0, 800), random(0, 600));
   }
   
   public void initialize_genetic_algorithm() {    
@@ -185,19 +175,24 @@ class NicheBreeder {
   public void fast_forward(int n_cycles) {
     for (int i = 0; i < n_cycles; i++) {
       genetic_algorithm_cycle();
-      if (i % 100 == 0) {
+     /* if (i % 100 == 0) {
         print("META ");
         print(mutation_rate);
         print(" ");
         print(lr);
         print("\n");
-      }
+      } */
     };
   }
   
   public void optimize_niche(int num_bad_cycles_to_break) {
     while (num_bad_generations_row < num_bad_cycles_to_break)
       genetic_algorithm_cycle();
+  }
+  
+  public void run() {
+    initialize_genetic_algorithm();
+    fast_forward(400);
   }
 
 }
