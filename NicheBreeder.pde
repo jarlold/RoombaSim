@@ -5,7 +5,7 @@ class NicheBreeder extends Thread{
   final int INPUT_VECTOR_SIZE = 8;
   final int OUTPUT_VECTOR_SIZE = 1;
   
-  final int[] LAYER_SIZES = {8, 5, 6, 7, 4, 1};
+  final int[] LAYER_SIZES = {INPUT_VECTOR_SIZE, 5, 6, 7, 4, OUTPUT_VECTOR_SIZE};
   final ActivationFunction[] LAYER_ACTIVATIONS ={ActivationFunction.TANH};
 
   final int spawn_location_x = 400;
@@ -17,7 +17,7 @@ class NicheBreeder extends Thread{
   
   final int num_dusts = 50;
   
-  float lr;
+  float lr = 0.1f;
   int mutation_rate = 5;
 
   ArrayList<NeuralNetwork> current_generation;
@@ -29,9 +29,8 @@ class NicheBreeder extends Thread{
   int num_successful_generations = 0;
   int num_bad_generations_row = 0;
 
-  public NicheBreeder(ArrayList<Wall> walls, float learning_rate) {
+  public NicheBreeder(ArrayList<Wall> walls) {
     this.walls = walls;
-    this.lr = learning_rate;
     randomize_dust();
   }
   
@@ -79,9 +78,11 @@ class NicheBreeder extends Thread{
   
   public float[] test_generation(ArrayList<NeuralNetwork> generation) {
     float[] scores = new float[generation.size()];
-    for (int i = 0; i < generation.size(); i++)
+    for (int i = 0; i < generation.size(); i++) {
       scores[i] = simulate_roomba_ability(generation.get(i));
-     return scores;
+      generation.get(i).score = scores[i];
+    }
+    return scores;
   }
   
   
@@ -130,6 +131,19 @@ class NicheBreeder extends Thread{
     previous_generation = current_generation;
   }
   
+  public ArrayList<NeuralNetwork> create_next_generation() {
+    ArrayList<NeuralNetwork> new_generation = new ArrayList<NeuralNetwork>();
+    
+    // Sort them by their scores
+    current_generation.sort( (a, b) -> (a.score < b.score ? 1 : -1) );
+    
+    // TODO: Slow
+    for (int i = 0; i < current_generation.size()/2; i++) {
+      new_generation.add( asexual_reproduction(current_generation.get(i), 1).get(0) );
+    }
+    
+    return new_generation;
+  }
   
   // Does one step in the genetic algorithm
   public void genetic_algorithm_cycle() {
@@ -137,28 +151,29 @@ class NicheBreeder extends Thread{
     num_generations++;
     
     // Set him out to stud (with himself)
-    ArrayList<NeuralNetwork> babies = asexual_reproduction(best_roomba, pop_size);
+    ArrayList<NeuralNetwork> babies = create_next_generation();
     
     // Now we'll test those babies with the harsh world of simulated reality.
     float[] scores = test_generation(babies);
     float generations_best_score = max(scores);
-    
+       
     // This is just so we can spy on them from the main class.
     current_generation = babies;
     
-    // If one of the babies does as well or better than his father, he will inherit the throne
+    // As long as one of the babies does better we'll keep the changes.
     if (generations_best_score >= best_score) {
       // Hurray success!
       num_successful_generations++;
       num_bad_generations_row = 0;
       best_score = generations_best_score;
+      
+      // Set the best roomba to be the new best roomba
       for (int i = 0; i < scores.length; i++) {
         if (scores[i] == best_score) {
           best_roomba = current_generation.get(i);
           break;
         }
       }
-      
     } else {
       // But if all the children are dissapointments, we'll throw them off a cliff like in 300
       current_generation = previous_generation;

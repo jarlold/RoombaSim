@@ -9,7 +9,7 @@ int visualization_length = 2500;
 boolean currently_rendering_visualization = false;
 
 void setup() {
-   randomSeed(42);
+   randomSeed(42+1);
    size(800, 600); 
    
    // Add some furniture to our simulation
@@ -29,11 +29,10 @@ void setup() {
    
    
    background(0);
-   rb = search_niches(50, 10, 500);
+   rb = search_niches(40, 20, 500);
    //rb = search_niches(4, 5);
 
-
-   ArrayList<NeuralNetwork> best_of_gen = new ArrayList<NeuralNetwork>();
+   ArrayList<NeuralNetwork> best_of_gen =rb.create_next_generation();
    best_of_gen.add(rb.best_roomba);
    visualize_generation(best_of_gen);
 }
@@ -43,14 +42,14 @@ void setup() {
 // TODO: Implement distancing so we don't get too close.
 NicheBreeder search_niches(int num_to_search, int num_bad_cycles_to_break, int max_cycles) {
   // Start by picking a random spot in the search space and finding it's nearest peak
-   NicheBreeder rb1 = new NicheBreeder(walls, 0.1f);
+   NicheBreeder rb1 = new NicheBreeder(walls);
    rb1.initialize_genetic_algorithm();
    rb1.optimize_niche(num_bad_cycles_to_break, max_cycles);
 
    print("Niche 0 had a max score of " + Float.toString(rb1.best_score) + "\n");
    // Then for however many times was specified, we'll pick a random spot, find it's peak, and compare
    for (int i = 0; i < num_to_search-1; i++) {
-     NicheBreeder rb2 = new NicheBreeder(walls, 0.1f);
+     NicheBreeder rb2 = new NicheBreeder(walls);
      rb2.initialize_genetic_algorithm();
      rb2.optimize_niche(num_bad_cycles_to_break, max_cycles);
      //rb2.fast_forward(num_gens);
@@ -68,7 +67,7 @@ NicheBreeder search_niches(int num_to_search, int num_bad_cycles_to_break, int m
 NicheBreeder search_niches_threaded(int num_threads) {
   NicheBreeder[] niches = new NicheBreeder[num_threads];
   for (int i = 0; i < num_threads; i++) {
-    niches[i] = new NicheBreeder(walls, 0.1f);
+    niches[i] = new NicheBreeder(walls);
     niches[i].start();
     System.out.println("Started new thread!");
   }

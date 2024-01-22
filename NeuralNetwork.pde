@@ -2,6 +2,9 @@ class NeuralNetwork {
  
   Layer[] layers;
     
+  // This is only here because sorting things in java is annoying
+  public float score;
+    
   public NeuralNetwork(Layer[] layers) {
    this.layers = layers; 
   }
