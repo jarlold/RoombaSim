@@ -29,7 +29,7 @@ void setup() {
    
    
    background(0);
-   //rb = search_niches(1, 1500, 1500);
+  // rb = search_niches(10, 100, 1500);
    //rb = search_niches(4, 5);
    rb = new NicheBreeder(walls);
    rb.initialize_genetic_algorithm();

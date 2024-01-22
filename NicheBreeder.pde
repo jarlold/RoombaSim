@@ -17,8 +17,8 @@ class NicheBreeder extends Thread{
   
   final int num_dusts = 50;
   
-  float lr = 0.05f;
-  int mutation_rate = 50;
+  float lr = 0.1f;
+  int mutation_rate = 10;
 
   ArrayList<NeuralNetwork> current_generation;
   ArrayList<NeuralNetwork> previous_generation;
@@ -142,7 +142,11 @@ class NicheBreeder extends Thread{
     // TODO: Slow
     for (int i = 0; i < current_generation.size()/2; i++) {
       new_generation.add( asexual_reproduction(current_generation.get(i), 1).get(0) );
+      new_generation.add( asexual_reproduction(current_generation.get(i), 1).get(0) );
     }
+    
+    // If pop_size is odd, we'll have an extra space. Fill it with another descendent of the best roomba
+    if (new_generation.size() < pop_size) new_generation.add( asexual_reproduction(current_generation.get(0), 1).get(0) );
     
     return new_generation;
   }
