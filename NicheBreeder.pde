@@ -17,8 +17,8 @@ class NicheBreeder extends Thread{
   
   final int num_dusts = 50;
   
-  float lr = 0.1f;
-  int mutation_rate = 5;
+  float lr = 0.05f;
+  int mutation_rate = 50;
 
   ArrayList<NeuralNetwork> current_generation;
   ArrayList<NeuralNetwork> previous_generation;
@@ -94,10 +94,12 @@ class NicheBreeder extends Thread{
        nn_layers[i] = new Layer(LAYER_SIZES[i], LAYER_SIZES[i+1], ActivationFunction.TANH);                                    
     }                                                                                                                                                                                                                                  
 
-    // We'll create our first roomba, Adam
-    NeuralNetwork adam = new NeuralNetwork(nn_layers);
-    // Then we'll put him out to stud (with himself)
-    ArrayList<NeuralNetwork> new_gen = asexual_reproduction(adam, pop_size);
+    ArrayList<NeuralNetwork> new_gen = new ArrayList<NeuralNetwork>();
+
+    for (int i = 0; i < pop_size; i++) {
+      new_gen.add( new NeuralNetwork(nn_layers) );
+    }
+    
     return new_gen;
   }
   

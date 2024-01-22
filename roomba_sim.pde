@@ -29,10 +29,13 @@ void setup() {
    
    
    background(0);
-   rb = search_niches(40, 20, 500);
+   //rb = search_niches(1, 1500, 1500);
    //rb = search_niches(4, 5);
+   rb = new NicheBreeder(walls);
+   rb.initialize_genetic_algorithm();
+   rb.fast_forward(1500);
 
-   ArrayList<NeuralNetwork> best_of_gen =rb.create_next_generation();
+   ArrayList<NeuralNetwork> best_of_gen = rb.create_next_generation();
    best_of_gen.add(rb.best_roomba);
    visualize_generation(best_of_gen);
 }
