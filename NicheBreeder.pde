@@ -39,7 +39,6 @@ class NicheBreeder extends Thread{
     return new Roomba(spawn_location_x, spawn_location_y, 15, walls, dusts, ControlMode.INSTINCT, instincts);
   }
     
-
   // Not actually gaussian lol
   public NeuralNetwork gaussian_mutated_clone(NeuralNetwork initial) {
     NeuralNetwork mutated = new NeuralNetwork(initial);
@@ -167,8 +166,7 @@ class NicheBreeder extends Thread{
     }
     
      // We adjust the mutation rate to follow the rechenberg principle
-    //do_rechenberg_rule();
-    
+    //do_rechenberg_rule();    
   }
   
   public void fast_forward(int n_cycles) {
@@ -177,9 +175,13 @@ class NicheBreeder extends Thread{
     };
   }
   
-  public void optimize_niche(int num_bad_cycles_to_break) {
-    while (num_bad_generations_row < num_bad_cycles_to_break)
+  public void optimize_niche(int num_bad_cycles_to_break, int max_cycles) {
+    int cycles_done = 0;
+    while (num_bad_generations_row < num_bad_cycles_to_break) {
       genetic_algorithm_cycle();
+      cycles_done++;
+      if (cycles_done >= max_cycles) break;
+    }
   }
   
   public void run() {
