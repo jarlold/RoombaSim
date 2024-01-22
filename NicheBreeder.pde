@@ -12,8 +12,11 @@ class NicheBreeder extends Thread{
   final int spawn_location_y = 300;
 
   final int pop_size = 15;
-  int num_timesteps = 2000*2;
+  final int num_timesteps = 2000*2;
   final int num_test_cycles = 5;
+  
+  final int num_dusts = 50;
+  
   float lr;
   int mutation_rate = 5;
 
@@ -29,7 +32,7 @@ class NicheBreeder extends Thread{
   public NicheBreeder(ArrayList<Wall> walls, float learning_rate) {
     this.walls = walls;
     this.lr = learning_rate;
-    randomize_dust(50);
+    randomize_dust();
   }
   
   public Roomba neural_network_to_roomba(NeuralNetwork instincts) {
@@ -62,7 +65,7 @@ class NicheBreeder extends Thread{
     float total_score = 0;
     for (int k = 0; k < num_test_cycles; k++) {
       // Make a mess of my room so they can clean it up
-      randomize_dust(50);
+      randomize_dust();
       for (int i = 0; i < num_timesteps; i++) {
         r.forward();
       }
@@ -72,7 +75,7 @@ class NicheBreeder extends Thread{
   }
   
   public float get_roomba_score(Roomba r) {
-    return r.dust_eaten- r.num_collisions/10;
+    return r.dust_eaten - r.num_collisions/10;
   }
   
   public float[] test_generation(ArrayList<NeuralNetwork> generation) {
@@ -84,13 +87,13 @@ class NicheBreeder extends Thread{
   
   
   private ArrayList<NeuralNetwork> create_initial_generation() {
-    // We'll use the same architecture for all the roombas for now
-    Layer[] nn_layers = {
-      new Layer(INPUT_VECTOR_SIZE, 7, ActivationFunction.TANH),
-      new Layer(7, 6, ActivationFunction.TANH),
-      new Layer(6, 5, ActivationFunction.TANH),
-      new Layer(5, OUTPUT_VECTOR_SIZE, ActivationFunction.TANH)
-    };
+    // We'll use the same architecture for all the roombas for now  
+    // This is because I intend to migrate to sexual reproduction soon (tm)                                                    
+    Layer[] nn_layers = new Layer[LAYER_SIZES.length-1];                                                                       
+    for (int i = 0; i < LAYER_SIZES.length-1; i++) { // -1 because the last size is actually useless (its the output layer size
+       nn_layers[i] = new Layer(LAYER_SIZES[i], LAYER_SIZES[i+1], ActivationFunction.TANH);                                    
+    }                                                                                                                                                                                                                                  
+
     // We'll create our first roomba, Adam
     NeuralNetwork adam = new NeuralNetwork(nn_layers);
     // Then we'll put him out to stud (with himself)
@@ -98,10 +101,10 @@ class NicheBreeder extends Thread{
     return new_gen;
   }
   
-  private void randomize_dust(int num_particles) {
+  private void randomize_dust() {
    // Add some dust to our simulation
-   dusts = new Dust[num_particles];
-   for (int i = 0; i < num_particles; i ++)
+   dusts = new Dust[num_dusts];
+   for (int i = 0; i < num_dusts; i ++)
      dusts[i] = new Dust(random(0, 800), random(0, 600));
   }
   
@@ -175,13 +178,6 @@ class NicheBreeder extends Thread{
   public void fast_forward(int n_cycles) {
     for (int i = 0; i < n_cycles; i++) {
       genetic_algorithm_cycle();
-     /* if (i % 100 == 0) {
-        print("META ");
-        print(mutation_rate);
-        print(" ");
-        print(lr);
-        print("\n");
-      } */
     };
   }
   

@@ -23,7 +23,7 @@ class Roomba {
     float ttl_collision = 0; // in frames TODO: needs to be seconds to use on real roomba
     ArrayList<Float> collision_times = new ArrayList<Float>(); // also needs conversion from frames
   
-    // Meta-parameters that we'll let the genetic algorithm decide
+    // Meta-parameters that we'll let the genetic algorithm decide maybe idk
     int collision_lookback_period = 300;
     
     // Metrics we'll use to evaluate the success of the roomba
@@ -59,9 +59,11 @@ class Roomba {
     }
   
   
+    public int get_dust_eaten() {
+      return dust_eaten;
+    }
   
     public void draw() {      
-
       if (abs(mouseX - x) <= size & abs(mouseY - y) <= size)
         on_mouse_over();
       
@@ -71,9 +73,6 @@ class Roomba {
       fill(255);
       circle(x+sin(bearing) * speed * 10, y + cos(bearing) * speed * 10, 10);
       fill(125, 125, 125);
-      
-      
-      
     }
     
  

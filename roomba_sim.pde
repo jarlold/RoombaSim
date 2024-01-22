@@ -5,7 +5,7 @@ NicheBreeder rb ;
 // Stuff used for our local visualization
 ArrayList<Roomba> roombas;
 int frames = 0;
-int visualization_length = 0;
+int visualization_length = 2500;
 boolean currently_rendering_visualization = false;
 
 void setup() {
@@ -30,6 +30,8 @@ void setup() {
    
    background(0);
    rb = search_niches(4, 500);
+   //rb = search_niches(4, 5);
+
 
    ArrayList<NeuralNetwork> best_of_gen = new ArrayList<NeuralNetwork>();
    best_of_gen.add(rb.best_roomba);
@@ -98,6 +100,7 @@ void draw() {
     visualize_generation(rb.current_generation);
   
   if (! currently_rendering_visualization ) return;
+  else frames ++;
   background(255);
   
   // Draw our walls
@@ -114,9 +117,18 @@ void draw() {
     chumly.forward();
   }
   
-  
   // Until the simulation ends, then erase them all :c
   if (frames >= visualization_length & visualization_length > 0) {
+    int score_sum = 0;
+    int walls_banged_sum = 0;
+    for (Roomba r : roombas) { 
+      score_sum += r.get_dust_eaten();
+      walls_banged_sum += r.num_collisions;
+    }
+    print("Avg Roomba Collected: ");
+    print( score_sum / roombas.size() );
+    print("\nAvg Roomba Banged Into The Wall For: ");
+    print( walls_banged_sum / roombas.size() );
     roombas = new ArrayList<Roomba>();
     currently_rendering_visualization = false;
   }
