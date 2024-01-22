@@ -29,7 +29,7 @@ void setup() {
    
    
    background(0);
-   rb = search_niches(4, 500);
+   rb = search_niches(5, 500);
    //rb = search_niches(4, 5);
 
 
@@ -46,17 +46,19 @@ NicheBreeder search_niches(int num_to_search, int num_gens) {
    NicheBreeder rb1 = new NicheBreeder(walls, 0.1f);
    rb1.initialize_genetic_algorithm();
    rb1.fast_forward(num_gens);
+   print("Niche 0 had a max score of " + Float.toString(rb1.best_score) + "\n");
    // Then for however many times was specified, we'll pick a random spot, find it's peak, and compare
    for (int i = 0; i < num_to_search-1; i++) {
      NicheBreeder rb2 = new NicheBreeder(walls, 0.1f);
      rb2.initialize_genetic_algorithm();
      //rb2.optimize_niche(num_gens);
      rb2.fast_forward(num_gens);
+     print("Niche " + Integer.toString(i+1) + " had a max score of " + Float.toString(rb2.best_score) + "\n");
 
      // If it's better, he becomes the new world champion
     if (rb2.best_score > rb1.best_score) {
       rb1 = rb2;
-      print("New best niche found!\n");
+      print("  Newest best roomba found!\n");
     }
    }
    return rb1;
@@ -129,6 +131,7 @@ void draw() {
     print( score_sum / roombas.size() );
     print("\nAvg Roomba Banged Into The Wall For: ");
     print( walls_banged_sum / roombas.size() );
+    print("\n");
     roombas = new ArrayList<Roomba>();
     currently_rendering_visualization = false;
   }

@@ -151,10 +151,6 @@ class NicheBreeder extends Thread{
     if (generations_best_score >= best_score) {
       // Hurray success!
       num_successful_generations++;
-      
-      print("BEST SCORE: ");
-      print(best_score);
-      print("\n");
       num_bad_generations_row = 0;
       best_score = generations_best_score;
       for (int i = 0; i < scores.length; i++) {
