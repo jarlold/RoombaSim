@@ -82,14 +82,18 @@ class NicheBreeder extends Thread {
     NeuralNetwork[] new_gen = new NeuralNetwork[population_size];
     // We'll use the same architecture for all the roombas for now  
     // This is because I intend to migrate to sexual reproduction soon (tm)                                                    
-    Layer[] nn_layers = new Layer[LAYER_SIZES.length-1];                                                                       
-    for (int i = 0; i < LAYER_SIZES.length-1; i++) { // -1 because the last size is actually useless (its the output layer size
-       nn_layers[i] = new Layer(LAYER_SIZES[i], LAYER_SIZES[i+1], ActivationFunction.TANH);                                    
-    }                                                                                                                          
-    
     for (int i = 0; i < population_size; i++) {
-      new_gen[i] = new NeuralNetwork(nn_layers);
+      new_gen[i] = new NeuralNetwork(LAYER_SIZES);
     } 
+    
+    float cumulative_distance = 0;
+    for (int i = 0; i < population_size-1; i++) {
+       cumulative_distance += new_gen[i].get_distance(new_gen[i+1]);
+    }
+    print(cumulative_distance);
+    print("\n");
+    
+    
     return new_gen;
   }
   

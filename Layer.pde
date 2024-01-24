@@ -90,7 +90,8 @@ class Layer {
     this.weights[i][j] += random(-lr, lr);
   }
 
-
-  
+  public float[][] get_weights() {
+    return this.weights;
+  }
   
 }
