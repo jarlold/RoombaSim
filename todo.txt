@@ -30,3 +30,7 @@ To Do:
   It works fine during playback, but during testing it gets wild
 
 - Maybe this had something to do with 'extends thread' no clue, rewriting things now
+
+- Rewrite works much better
+
+- Even after simulation ends, roombas stay spinning, look into this later I guess. Probably caused by extra draw calls.

@@ -17,7 +17,7 @@ class NeuralNetwork {
   }
   
   public NeuralNetwork(NeuralNetwork clone_me) {
-    this.layers = clone_me.layers;
+    this.layers = clone_me.layers.clone();
   }
 
     

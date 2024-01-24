@@ -3,7 +3,7 @@ NicheBreeder rb ;
 Roomba player_roomba;
 
 void setup() {
-   randomSeed(42+1);
+   randomSeed(42+1+1);
    size(800, 600); 
    
    // Add some furniture to our simulation
