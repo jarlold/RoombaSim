@@ -17,3 +17,14 @@ To Do:
 - Fix UI for hovering on roombas, which is currently pretty useless
 
 - Why always a score of ~ -393 ???
+
+- Current working theory 
+	- Roomba exhibit some degree of evolution?
+	- They are moving in circles to avoid hitting the walls.
+	- But leaving very little room to attempt other niches
+
+
+- For some reason roomba scores come up as -3700. Traced this back to the "num_collisions" variable
+  which for some reason is'nt honest in every context...
+
+  It works fine during playback, but during testing it gets wild

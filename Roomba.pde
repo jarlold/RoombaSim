@@ -19,7 +19,7 @@ class Roomba {
     
     // Metrics we'll keep track of and give to the neural network
     float time_steps = 0;
-    float num_collisions = 0;
+    public float num_collisions = 0;
     float ttl_collision = 0; // in frames TODO: needs to be seconds to use on real roomba
     ArrayList<Float> collision_times = new ArrayList<Float>(); // also needs conversion from frames
   
@@ -30,8 +30,6 @@ class Roomba {
     ArrayList<Float> x_history = new ArrayList<Float>();
     ArrayList<Float> y_history = new ArrayList<Float>();
     int dust_eaten = 0;
-  
-    
     
     public Roomba(float x, float y, float size,  color c, ArrayList<Wall> walls, ControlMode pc, NeuralNetwork instincts) {
       this.x = x;
@@ -122,11 +120,10 @@ class Roomba {
      float get_instinctual_bearing_change() {
       float[] input_vector = get_input_vector();
       
+      //TODO: This was just for debugging
       for (int i = 0; i < input_vector.length; i++)
          if (Float.isNaN(input_vector[i]))
            print(i);
-      
-      
       
       float instinct_bearing_change = instincts.forward(input_vector)[0] ;
       if( Float.isNaN( instinct_bearing_change * max_roomba_turn_deg )) {
@@ -134,7 +131,6 @@ class Roomba {
       } else {
         return (instinct_bearing_change ) * max_roomba_turn_deg;
       }
-       
    }
    
    
@@ -165,7 +161,6 @@ class Roomba {
      // Keep track of the score so we know who to send to Android Hell
      check_dust();
 
-     
     float dx = sin(bearing) * speed + random(-0.5, 0.5);
     float dy = cos(bearing) * speed + random(-0.5, 0.5);
     
@@ -189,10 +184,8 @@ class Roomba {
        return false;
    }
    
-   
 
   private void do_player_controls() {
-    
     switch(this.player_controls) {
       case MOUSE:     
         float dx = this.x - mouseX;
@@ -227,8 +220,7 @@ class Roomba {
     fill( color(0, 0, 0));
     for (int i = 0; i < iv.length; i++)
       text(str(iv[i]), 10, 20*i);
-    
-    instincts.draw(150 , 150/2- 10, 10);
+        //instincts.draw(150 , 150/2- 10, 10);
     textSize(20);    
   }
   

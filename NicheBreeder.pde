@@ -13,18 +13,18 @@ class NicheBreeder extends Thread{
 
   final int pop_size = 15;
   final int num_timesteps = 2000*2;
-  final int num_test_cycles = 5;
+  final int num_test_cycles = 1; //5;
   
   final int num_dusts = 50;
   
   float lr = 0.1f;
-  int mutation_rate = 10;
+  int mutation_rate = 1;
 
   ArrayList<NeuralNetwork> current_generation;
   ArrayList<NeuralNetwork> previous_generation;
 
   NeuralNetwork best_roomba;
-  float best_score;
+  public float best_score;
   int num_generations = 0; 
   int num_successful_generations = 0;
   int num_bad_generations_row = 0;
@@ -58,22 +58,23 @@ class NicheBreeder extends Thread{
 
 
   public float simulate_roomba_ability(NeuralNetwork instincts) {
-    Roomba r = neural_network_to_roomba(instincts);
-   // r.turn(random(0, 365));
     float total_score = 0;
+    Roomba r;
     for (int k = 0; k < num_test_cycles; k++) {
+      r = neural_network_to_roomba(instincts);
       // Make a mess of my room so they can clean it up
       randomize_dust();
       for (int i = 0; i < num_timesteps; i++) {
         r.forward();
       }
-      total_score = get_roomba_score(r);
+      
+      total_score += get_roomba_score(r);
     }
-    return total_score /= num_test_cycles;
+    return total_score / num_test_cycles;
   }
   
   public float get_roomba_score(Roomba r) {
-    return r.dust_eaten - r.num_collisions/10;
+    return - r.num_collisions; //r.dust_eaten - r.num_collisions/50;
   }
   
   public float[] test_generation(ArrayList<NeuralNetwork> generation) {
@@ -116,18 +117,12 @@ class NicheBreeder extends Thread{
     current_generation = create_initial_generation();
     
     // Then, as God does, we will test their faith.
-    float[] scores = test_generation(current_generation);
+    test_generation(current_generation);
     
-    // They will set the starting standard for all roombas to come
-    best_score = max(scores);
+    current_generation.sort( (a, b) -> (a.score < b.score ? 1 : -1) );
     
-    // And we'll put him on a pedestal for all to admire
-    for (int i = 0; i < scores.length; i++) {
-      if (scores[i] == best_score) {
-        best_roomba = current_generation.get(i);
-        break;
-      }
-    }
+    best_roomba = current_generation.get(0);
+    best_score = best_roomba.score;
     
     // And now they become the old timers
     previous_generation = current_generation;
@@ -161,8 +156,9 @@ class NicheBreeder extends Thread{
     
     // Now we'll test those babies with the harsh world of simulated reality.
     float[] scores = test_generation(babies);
+    
     float generations_best_score = max(scores);
-       
+
     // This is just so we can spy on them from the main class.
     current_generation = babies;
     
@@ -172,6 +168,9 @@ class NicheBreeder extends Thread{
       num_successful_generations++;
       num_bad_generations_row = 0;
       best_score = generations_best_score;
+      print("New best score is ");
+      print(best_score);
+      print("\n");
       
       // Set the best roomba to be the new best roomba
       for (int i = 0; i < scores.length; i++) {

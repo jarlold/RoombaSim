@@ -5,11 +5,11 @@ NicheBreeder rb ;
 // Stuff used for our local visualization
 ArrayList<Roomba> roombas;
 int frames = 0;
-int visualization_length = 2500;
+int visualization_length = 2000*2;
 boolean currently_rendering_visualization = false;
 
 void setup() {
-   randomSeed(42+1);
+   randomSeed(42+1+1+1);
    size(800, 600); 
    
    // Add some furniture to our simulation
@@ -29,11 +29,13 @@ void setup() {
    
    
    background(0);
-  // rb = search_niches(10, 100, 1500);
-   //rb = search_niches(4, 5);
+   //rb = search_niches(1, 30, 1500);
+   //rb = search_niches(1, 1500-1, 1500-1);
+   
    rb = new NicheBreeder(walls);
    rb.initialize_genetic_algorithm();
-   rb.fast_forward(1500);
+   rb.fast_forward(1);
+   
 
    ArrayList<NeuralNetwork> best_of_gen = rb.create_next_generation();
    best_of_gen.add(rb.best_roomba);
