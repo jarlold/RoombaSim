@@ -1,9 +1,11 @@
 class Layer {
   
+  
   ActivationFunction activ_func;
   public float[][] weights;
   public int input_size;
   public int output_size;
+  
   
   
   
@@ -21,7 +23,7 @@ class Layer {
      // Start with random weights
      for (int i = 0; i < output_size; i++) {
        for (int j = 0; j < input_size; j++) {
-          this.weights[i][j] = random(-1f, 1f);
+          this.weights[i][j] = randomGaussian()*100;
        }
     }
   }

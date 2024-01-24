@@ -30,18 +30,6 @@ class Roomba {
     ArrayList<Float> x_history = new ArrayList<Float>();
     ArrayList<Float> y_history = new ArrayList<Float>();
     int dust_eaten = 0;
-    
-    public Roomba(float x, float y, float size,  color c, ArrayList<Wall> walls, ControlMode pc, NeuralNetwork instincts) {
-      this.x = x;
-      this.y = y;
-      this.size = size;
-      this.c = c;
-      this.speed = 1f;
-      this.bearing = 0f;
-      this.walls = walls;
-      this.player_controls = pc;
-      this.instincts = instincts;
-    }
   
    public Roomba(float x, float y, float size, ArrayList<Wall> walls, Dust[] dusts, ControlMode pc, NeuralNetwork instincts) {
       this.x = x;
@@ -220,7 +208,7 @@ class Roomba {
     fill( color(0, 0, 0));
     for (int i = 0; i < iv.length; i++)
       text(str(iv[i]), 10, 20*i);
-        //instincts.draw(150 , 150/2- 10, 10);
+    
     textSize(20);    
   }
   

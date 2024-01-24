@@ -28,3 +28,5 @@ To Do:
   which for some reason is'nt honest in every context...
 
   It works fine during playback, but during testing it gets wild
+
+- Maybe this had something to do with 'extends thread' no clue, rewriting things now

@@ -1,212 +1,101 @@
-class NicheBreeder extends Thread{
-  ArrayList<Wall> walls;
-  Dust[] dusts;
-
+class NicheBreeder extends Thread {
+  
+  // Basic Settings
   final int INPUT_VECTOR_SIZE = 8;
   final int OUTPUT_VECTOR_SIZE = 1;
-  
   final int[] LAYER_SIZES = {INPUT_VECTOR_SIZE, 5, 6, 7, 4, OUTPUT_VECTOR_SIZE};
   final ActivationFunction[] LAYER_ACTIVATIONS ={ActivationFunction.TANH};
-
-  final int spawn_location_x = 400;
-  final int spawn_location_y = 300;
-
-  final int pop_size = 15;
-  final int num_timesteps = 2000*2;
-  final int num_test_cycles = 1; //5;
   
-  final int num_dusts = 50;
+  final float spawn_location_x = 400; // Where to shitout the roombas
+  final float spawn_location_y = 100; 
+  final float simulation_length = 200; // 2000*2; // How many frames the simulation should last for
   
-  float lr = 0.1f;
-  int mutation_rate = 1;
+  boolean visible = false; // Whether or not there are any roombas in the testing array that we can draw
 
-  ArrayList<NeuralNetwork> current_generation;
-  ArrayList<NeuralNetwork> previous_generation;
+  //Meta parameters
+  final int population_size = 30;
+  final float starting_lr = 0.1f;
+  final int num_simulation_samples = 5; // How many times to run the simulation for each roomba, the score will be an average of the performance.
+  
+  // Runtime variables
+  ArrayList<Wall> walls;
+  NeuralNetwork best_solution;
+  public NeuralNetwork[] current_generation;
+  NeuralNetwork[] previous_generation;
+  float lr;
+  Dust[] dusts;
+  public Roomba[] roombas_being_tested;
+  public boolean currently_testing = false;
 
-  NeuralNetwork best_roomba;
-  public float best_score;
-  int num_generations = 0; 
-  int num_successful_generations = 0;
-  int num_bad_generations_row = 0;
-
-  public NicheBreeder(ArrayList<Wall> walls) {
+  
+  public NicheBreeder (ArrayList<Wall> walls, boolean visible) {
     this.walls = walls;
-    randomize_dust();
+    this.visible = visible;
+    dusts = generate_dust(50);
+    previous_generation = create_first_generation();
+    this.current_generation = create_first_generation();
   }
   
-  public Roomba neural_network_to_roomba(NeuralNetwork instincts) {
-    return new Roomba(spawn_location_x, spawn_location_y, 15, walls, dusts, ControlMode.INSTINCT, instincts);
+  // Generate an array of fresh dust
+  Dust[] generate_dust(int amount) {
+    Dust[] new_dusts = new Dust[amount];
+    for (int i = 0; i < amount; i++) new_dusts[i] = new Dust(random(width), random(height));
+    return new_dusts;
   }
+  
+  Roomba neural_network_to_roomba(NeuralNetwork instincts) {
+    return new Roomba(spawn_location_x, spawn_location_y, 40, walls, dusts, ControlMode.INSTINCT, instincts);
+  }
+
+  // Tests all the neural networks in a simulation. Sets their 'scores' based off performance
+  void test_solutions(NeuralNetwork[] solutions) {
+    // Best not try and draw this array while we're overwriting it
+    this.currently_testing = false;
     
-  // Not actually gaussian lol
-  public NeuralNetwork gaussian_mutated_clone(NeuralNetwork initial) {
-    NeuralNetwork mutated = new NeuralNetwork(initial);
-    for (int i = 0 ; i < mutation_rate; i++)
-      mutated.tweak(lr);
-    return mutated;
-  }  
-  
-  public ArrayList<NeuralNetwork> asexual_reproduction(NeuralNetwork daddy, int num_babies) {
-    ArrayList<NeuralNetwork> babies = new ArrayList<NeuralNetwork>();
-    for (int i = 0; i < num_babies; i++) {
-      babies.add(
-        gaussian_mutated_clone(daddy)
-      );
+    // Create a series of roomba objects
+    roombas_being_tested = new Roomba[solutions.length];
+    for (int i = 0; i < solutions.length; i++) {
+      roombas_being_tested[i] = neural_network_to_roomba(solutions[i]);
     }
-    return babies;
-  }
-
-
-  public float simulate_roomba_ability(NeuralNetwork instincts) {
-    float total_score = 0;
-    Roomba r;
-    for (int k = 0; k < num_test_cycles; k++) {
-      r = neural_network_to_roomba(instincts);
-      // Make a mess of my room so they can clean it up
-      randomize_dust();
-      for (int i = 0; i < num_timesteps; i++) {
-        r.forward();
+    
+    // It should be safe to draw them again, now that we've finished generating Roomba objects
+    // from the neural networks
+    this.currently_testing = true;
+    
+    // Run them all through the simulation num_simulation_samples times
+    for (int j = 0; j < num_simulation_samples; j++) {
+      for (int i = 0; i < simulation_length; i++) {
+        if (this.visible) delay(10);
+        for (Roomba r : roombas_being_tested) {
+          r.forward();
+        }
       }
-      
-      total_score += get_roomba_score(r);
     }
-    return total_score / num_test_cycles;
+    
+    // Then based off that, ascribe their scores to the neural networks that were piloting them
+    for (int i = 0; i < solutions.length; i++)
+      solutions[i].score = -roombas_being_tested[i].num_collisions / num_simulation_samples;
   }
   
-  public float get_roomba_score(Roomba r) {
-    return - r.num_collisions; //r.dust_eaten - r.num_collisions/50;
-  }
-  
-  public float[] test_generation(ArrayList<NeuralNetwork> generation) {
-    float[] scores = new float[generation.size()];
-    for (int i = 0; i < generation.size(); i++) {
-      scores[i] = simulate_roomba_ability(generation.get(i));
-      generation.get(i).score = scores[i];
-    }
-    return scores;
-  }
-  
-  
-  private ArrayList<NeuralNetwork> create_initial_generation() {
+  // Creates an array of fresh NeuralNetworks with random weights
+  NeuralNetwork[] create_first_generation() {
+    NeuralNetwork[] new_gen = new NeuralNetwork[population_size];
     // We'll use the same architecture for all the roombas for now  
     // This is because I intend to migrate to sexual reproduction soon (tm)                                                    
     Layer[] nn_layers = new Layer[LAYER_SIZES.length-1];                                                                       
     for (int i = 0; i < LAYER_SIZES.length-1; i++) { // -1 because the last size is actually useless (its the output layer size
        nn_layers[i] = new Layer(LAYER_SIZES[i], LAYER_SIZES[i+1], ActivationFunction.TANH);                                    
-    }                                                                                                                                                                                                                                  
-
-    ArrayList<NeuralNetwork> new_gen = new ArrayList<NeuralNetwork>();
-
-    for (int i = 0; i < pop_size; i++) {
-      new_gen.add( new NeuralNetwork(nn_layers) );
-    }
+    }                                                                                                                          
     
+    for (int i = 0; i < population_size; i++) {
+      new_gen[i] = new NeuralNetwork(nn_layers);
+    } 
     return new_gen;
   }
   
-  private void randomize_dust() {
-   // Add some dust to our simulation
-   dusts = new Dust[num_dusts];
-   for (int i = 0; i < num_dusts; i ++)
-     dusts[i] = new Dust(random(0, 800), random(0, 600));
-  }
-  
-  public void initialize_genetic_algorithm() {    
-    // We'll start by making some totally random roombas out of clay.
-    // Roombas don't have ribs, so ours will be asexual
-    current_generation = create_initial_generation();
-    
-    // Then, as God does, we will test their faith.
-    test_generation(current_generation);
-    
-    current_generation.sort( (a, b) -> (a.score < b.score ? 1 : -1) );
-    
-    best_roomba = current_generation.get(0);
-    best_score = best_roomba.score;
-    
-    // And now they become the old timers
-    previous_generation = current_generation;
-  }
-  
-  public ArrayList<NeuralNetwork> create_next_generation() {
-    ArrayList<NeuralNetwork> new_generation = new ArrayList<NeuralNetwork>();
-    
-    // Sort them by their scores
-    current_generation.sort( (a, b) -> (a.score < b.score ? 1 : -1) );
-    
-    // TODO: Slow
-    for (int i = 0; i < current_generation.size()/2; i++) {
-      new_generation.add( asexual_reproduction(current_generation.get(i), 1).get(0) );
-      new_generation.add( asexual_reproduction(current_generation.get(i), 1).get(0) );
-    }
-    
-    // If pop_size is odd, we'll have an extra space. Fill it with another descendent of the best roomba
-    if (new_generation.size() < pop_size) new_generation.add( asexual_reproduction(current_generation.get(0), 1).get(0) );
-    
-    return new_generation;
-  }
-  
-  // Does one step in the genetic algorithm
-  public void genetic_algorithm_cycle() {
-    // For Rechenberg rule
-    num_generations++;
-    
-    // Set him out to stud (with himself)
-    ArrayList<NeuralNetwork> babies = create_next_generation();
-    
-    // Now we'll test those babies with the harsh world of simulated reality.
-    float[] scores = test_generation(babies);
-    
-    float generations_best_score = max(scores);
-
-    // This is just so we can spy on them from the main class.
-    current_generation = babies;
-    
-    // As long as one of the babies does better we'll keep the changes.
-    if (generations_best_score >= best_score) {
-      // Hurray success!
-      num_successful_generations++;
-      num_bad_generations_row = 0;
-      best_score = generations_best_score;
-      print("New best score is ");
-      print(best_score);
-      print("\n");
-      
-      // Set the best roomba to be the new best roomba
-      for (int i = 0; i < scores.length; i++) {
-        if (scores[i] == best_score) {
-          best_roomba = current_generation.get(i);
-          break;
-        }
-      }
-    } else {
-      // But if all the children are dissapointments, we'll throw them off a cliff like in 300
-      current_generation = previous_generation;
-      num_bad_generations_row++;
-    }
-    
-     // We adjust the mutation rate to follow the rechenberg principle
-    //do_rechenberg_rule();    
-  }
-  
-  public void fast_forward(int n_cycles) {
-    for (int i = 0; i < n_cycles; i++) {
-      genetic_algorithm_cycle();
-    };
-  }
-  
-  public void optimize_niche(int num_bad_cycles_to_break, int max_cycles) {
-    int cycles_done = 0;
-    while (num_bad_generations_row < num_bad_cycles_to_break) {
-      genetic_algorithm_cycle();
-      cycles_done++;
-      if (cycles_done >= max_cycles) break;
+  void run() {
+    while (true) {
+      test_solutions(create_first_generation());
     }
   }
-  
-  public void run() {
-    initialize_genetic_algorithm();
-    fast_forward(400);
-  }
-
 }
