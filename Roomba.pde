@@ -18,8 +18,9 @@ class Roomba {
     float max_time_steps = 60*60*5; // 60 frame/s * 60s/min * 5 min/run
     
     // Metrics we'll keep track of and give to the neural network
+    public float num_collisions = 0; // Don't reset this!
+
     float time_steps = 0;
-    public float num_collisions = 0;
     float ttl_collision = 0; // in frames TODO: needs to be seconds to use on real roomba
     ArrayList<Float> collision_times = new ArrayList<Float>(); // also needs conversion from frames
   
@@ -29,7 +30,8 @@ class Roomba {
     // Metrics we'll use to evaluate the success of the roomba
     ArrayList<Float> x_history = new ArrayList<Float>();
     ArrayList<Float> y_history = new ArrayList<Float>();
-    int dust_eaten = 0;
+    
+    int dust_eaten = 0; // Don't reset this either!
   
    public Roomba(float x, float y, float size, ArrayList<Wall> walls, Dust[] dusts, ControlMode pc, NeuralNetwork instincts) {
       this.x = x;
@@ -47,7 +49,7 @@ class Roomba {
   
     public int get_dust_eaten() {
       return dust_eaten;
-    }
+    }  
   
     public void draw() {      
       if (abs(mouseX - x) <= size & abs(mouseY - y) <= size)

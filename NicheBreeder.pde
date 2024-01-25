@@ -9,15 +9,16 @@ class NicheBreeder extends Thread {
   
   final float spawn_location_x = 400; // Where to shitout the roombas
   final float spawn_location_y = 100; 
-  final float simulation_length = 2000*2*2; // How many frames the simulation should last for
+  final float simulation_length = 2000*2; // How many frames the simulation should last for
   
   boolean visible = false; // Whether or not there are any roombas in the testing array that we can draw
   int simulation_speed = 1; // How many ms to wait between simulation steps (if visible)
 
   //Meta parameters
   final int population_size = 30;
-  final float starting_lr = 0.1f;
-  final int num_simulation_samples = 1; // How many times to run the simulation for each roomba, the score will be an average of the performance.
+  final float starting_lr = 0.1f; // How big the changes we make to our mutations should be
+  final int starting_mutation_rate = 1; // How many mutations we should make per mutant roomba
+  final int num_simulation_samples = 3; // How many times to run the simulation for each roomba, the score will be an average of the performance.
   
   // Runtime variables
   ArrayList<Wall> walls;
@@ -25,6 +26,7 @@ class NicheBreeder extends Thread {
   public Roomba[] roombas_being_tested;
   public boolean currently_testing = false;
   float lr = starting_lr;
+  int mutation_rate = starting_mutation_rate;
 
   
   public NicheBreeder (ArrayList<Wall> walls, boolean visible) {
@@ -49,7 +51,7 @@ class NicheBreeder extends Thread {
 
   // Tests all the neural networks in a simulation. Sets their 'scores' based off performance
   NeuralNetwork[] test_solutions(NeuralNetwork[] solutions) {
-    // Todo: Roomba positions aren't being reset between simulation samples
+    // Todo: Roomba internal states aren't being reset between simulation samples
     
     // Best not try and draw this array while we're overwriting it
     this.currently_testing = false;
@@ -68,7 +70,8 @@ class NicheBreeder extends Thread {
     for (int j = 0; j < num_simulation_samples; j++) {
       //Randomize the dust particles in the room
       this.dusts = generate_dust(50);
-
+      // TODO: THIS IS NOT A REAL SOLUTION TO THE RESETING PROBLEM FIX THIS LATER
+      for (Roomba r : roombas_being_tested) { r.x = spawn_location_x; r.y = spawn_location_y; }
       for (int i = 0; i < simulation_length; i++) {
         if (this.visible) delay(simulation_speed);
         for (Roomba r : roombas_being_tested) {
@@ -79,7 +82,7 @@ class NicheBreeder extends Thread {
     
     // Then based off that, ascribe their scores to the neural networks that were piloting them
     for (int i = 0; i < solutions.length; i++)
-      solutions[i].score = ( roombas_being_tested[i].dust_eaten -roombas_being_tested[i].num_collisions*(dusts.length / 3000.0) ) / num_simulation_samples;
+      solutions[i].score = ( roombas_being_tested[i].dust_eaten -roombas_being_tested[i].num_collisions*(dusts.length / 3000.0)*0 ) / num_simulation_samples;
       
     return solutions;
   }
@@ -99,7 +102,8 @@ class NicheBreeder extends Thread {
     
   NeuralNetwork create_mutated_clone(NeuralNetwork n) {
     NeuralNetwork mutant = new NeuralNetwork(n);
-    mutant.tweak(lr);
+    for (int i = 0; i < mutation_rate; i++)
+      mutant.tweak(lr);
     return mutant;
   }
   
@@ -172,7 +176,9 @@ class NicheBreeder extends Thread {
       print(p_gen[p_gen.length-1].score);
       print("\nLearning Rate: ");
       print(lr);
-      print("\n-------------------------\n");
+      print("\nMutation Rate: ");
+      print(mutation_rate);
+      print("\n--------------------------\n");
     }
   }
 }
