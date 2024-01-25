@@ -9,21 +9,23 @@ class NicheBreeder extends Thread {
   
   final float spawn_location_x = 400; // Where to shitout the roombas
   final float spawn_location_y = 100; 
-  final float simulation_length = 200; // 2000*2; // How many frames the simulation should last for
+  final float simulation_length = 2000*2*2; // How many frames the simulation should last for
   
   boolean visible = false; // Whether or not there are any roombas in the testing array that we can draw
+  int simulation_speed = 1; // How many ms to wait between simulation steps (if visible)
 
   //Meta parameters
   final int population_size = 30;
   final float starting_lr = 0.1f;
-  final int num_simulation_samples = 5; // How many times to run the simulation for each roomba, the score will be an average of the performance.
+  final int num_simulation_samples = 1; // How many times to run the simulation for each roomba, the score will be an average of the performance.
   
   // Runtime variables
   ArrayList<Wall> walls;
-  float lr = starting_lr;
   Dust[] dusts;
   public Roomba[] roombas_being_tested;
   public boolean currently_testing = false;
+  float lr = starting_lr;
+
   
   public NicheBreeder (ArrayList<Wall> walls, boolean visible) {
     this.walls = walls;
@@ -47,6 +49,8 @@ class NicheBreeder extends Thread {
 
   // Tests all the neural networks in a simulation. Sets their 'scores' based off performance
   NeuralNetwork[] test_solutions(NeuralNetwork[] solutions) {
+    // Todo: Roomba positions aren't being reset between simulation samples
+    
     // Best not try and draw this array while we're overwriting it
     this.currently_testing = false;
     
@@ -62,8 +66,11 @@ class NicheBreeder extends Thread {
     
     // Run them all through the simulation num_simulation_samples times
     for (int j = 0; j < num_simulation_samples; j++) {
+      //Randomize the dust particles in the room
+      this.dusts = generate_dust(50);
+
       for (int i = 0; i < simulation_length; i++) {
-        if (this.visible) delay(10);
+        if (this.visible) delay(simulation_speed);
         for (Roomba r : roombas_being_tested) {
           r.forward();
         }
@@ -72,7 +79,7 @@ class NicheBreeder extends Thread {
     
     // Then based off that, ascribe their scores to the neural networks that were piloting them
     for (int i = 0; i < solutions.length; i++)
-      solutions[i].score = -roombas_being_tested[i].num_collisions / num_simulation_samples;
+      solutions[i].score = ( roombas_being_tested[i].dust_eaten -roombas_being_tested[i].num_collisions*(dusts.length / 3000.0) ) / num_simulation_samples;
       
     return solutions;
   }
@@ -118,19 +125,54 @@ class NicheBreeder extends Thread {
   
   
   void run() {
+    Float previous_best = null;
+    int num_successful_gens = 0;
+    int num_generations = 0;
+    
+    // Start with a pile of random roombas
     NeuralNetwork[] p_gen = test_solutions(create_first_generation());
-    do {
+    while (true) {
+      // Create and test a new generation
       NeuralNetwork[] n_gen = test_solutions(create_next_generation(p_gen));
+      
+      // Sort them by their scores (we're doing this twice for some reason...)
       Arrays.sort( n_gen, (o1, o2) -> { if (o1.score > o2.score) return -1; else if(o1.score < o2.score) return 1; else return 0; } );
 
-      p_gen = n_gen;
+      // We'll want to keep track of this
+      num_generations++;
 
-      print("Generation's Results:\n");
-      for (int i = 0; i < population_size; i++) {
-        print(p_gen[i].score);
-        print("\n");
-      }
-      print("-----\n");
-    } while (true);
+      // If we did better than the previous generation, then that's a successful generation!
+      if (previous_best == null || n_gen[0].score > previous_best)
+        num_successful_gens++;
+
+      // New generation is now the old generation
+      p_gen = n_gen;
+      
+      // Which means the new best is now the previous best
+      previous_best = p_gen[0].score;
+      
+      // If more than 1 in every five generations is successful, we'll raise the mutation rate
+      // But if it gets waaaay too small, then this indicates making the lr smaller isn't helping 
+      // the roombas evolve. Maybe they've found the best solution, but it's probably premature convergence.
+      // If it's the latter raising the lr will help, if it's the former reseting the lr won't hurt.
+      // (since we always add the original parents back)
+      if (lr < starting_lr / 100)
+        lr = starting_lr*5;
+      else if ( (num_successful_gens/num_generations) > 0.2f )
+        lr = lr * 2.0;
+      else
+        lr = lr / 2.0;
+
+      print("-- Generation Completed --\n");
+      print("Generation No.: ");
+      print(num_generations);
+      print("\nBest Score: ");
+      print(p_gen[0].score);
+      print("\nWorst Score: ");
+      print(p_gen[p_gen.length-1].score);
+      print("\nLearning Rate: ");
+      print(lr);
+      print("\n-------------------------\n");
+    }
   }
 }
