@@ -101,7 +101,7 @@ class NicheBreeder extends Thread {
     NeuralNetwork[] new_gen = new NeuralNetwork[previous_generation.length];
 
     // Sort the solutions by score
-    Arrays.sort( previous_generation, (o1, o2) -> { if (o1.score > o2.score) return 1; else if(o1.score < o2.score) return -1; else return 0; } );
+    Arrays.sort( previous_generation, (o1, o2) -> { if (o1.score > o2.score) return -1; else if(o1.score < o2.score) return 1; else return 0; } );
     
     // The top half lives
     for (int i = 0; i < previous_generation.length / 2; i++) {
@@ -121,7 +121,10 @@ class NicheBreeder extends Thread {
     NeuralNetwork[] p_gen = test_solutions(create_first_generation());
     do {
       NeuralNetwork[] n_gen = test_solutions(create_next_generation(p_gen));
+      Arrays.sort( n_gen, (o1, o2) -> { if (o1.score > o2.score) return -1; else if(o1.score < o2.score) return 1; else return 0; } );
+
       p_gen = n_gen;
+
       print("Generation's Results:\n");
       for (int i = 0; i < population_size; i++) {
         print(p_gen[i].score);
