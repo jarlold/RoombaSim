@@ -97,8 +97,8 @@ class Roomba {
           get_num_col_moving_avg(),
           (360 * (this.bearing / 2 * PI) + random(0, 5)), //360, 
           time_steps /max_time_steps, 
-          -(this.x + random(0, 2*speed) - width/2) / width, 
-          -(this.y + random(0, 2*speed) - height/2) / height,
+          1, //-(this.x + random(0, 2*speed) - width/2) / width, 
+          0, //-(this.y + random(0, 2*speed) - height/2) / height,
            num_collisions,
           (time_steps - ttl_collision),
           100*sin(time_steps/(max_time_steps/1000))

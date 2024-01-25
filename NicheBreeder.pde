@@ -4,21 +4,24 @@ class NicheBreeder extends Thread {
   // Basic Settings
   final int INPUT_VECTOR_SIZE = 8;
   final int OUTPUT_VECTOR_SIZE = 1;
-  final int[] LAYER_SIZES = {INPUT_VECTOR_SIZE, 5, 6, 7, 4, OUTPUT_VECTOR_SIZE};
-  final ActivationFunction[] LAYER_ACTIVATIONS ={ActivationFunction.TANH};
+  final int[] LAYER_SIZES = {INPUT_VECTOR_SIZE, 10, 12, 14, 8, OUTPUT_VECTOR_SIZE};
+  final ActivationFunction[] LAYER_ACTIVATIONS = {ActivationFunction.TANH};
   
   final float spawn_location_x = 400; // Where to shitout the roombas
   final float spawn_location_y = 100; 
-  final float simulation_length = 2000*2; // How many frames the simulation should last for
+  final float simulation_length = 2000*4; // How many frames the simulation should last for
   
   boolean visible = false; // Whether or not there are any roombas in the testing array that we can draw
-  int simulation_speed = 1; // How many ms to wait between simulation steps (if visible)
+  int simulation_speed = 0; // How many ms to wait between simulation steps (if visible)
+  
+  final int num_dusts = 100;
 
   //Meta parameters
   final int population_size = 30;
   final float starting_lr = 0.1f; // How big the changes we make to our mutations should be
   final int starting_mutation_rate = 1; // How many mutations we should make per mutant roomba
   final int num_simulation_samples = 3; // How many times to run the simulation for each roomba, the score will be an average of the performance.
+  final int num_momentum_gens = 3; // How many generations can fail before we reset to the previous best known
   
   // Runtime variables
   ArrayList<Wall> walls;
@@ -32,7 +35,7 @@ class NicheBreeder extends Thread {
   public NicheBreeder (ArrayList<Wall> walls, boolean visible) {
     this.walls = walls;
     this.visible = visible;
-    dusts = generate_dust(50);
+    dusts = generate_dust(num_dusts);
   }
   
   
@@ -69,7 +72,7 @@ class NicheBreeder extends Thread {
     // Run them all through the simulation num_simulation_samples times
     for (int j = 0; j < num_simulation_samples; j++) {
       //Randomize the dust particles in the room
-      this.dusts = generate_dust(50);
+      this.dusts = generate_dust(num_dusts);
       // TODO: THIS IS NOT A REAL SOLUTION TO THE RESETING PROBLEM FIX THIS LATER
       for (Roomba r : roombas_being_tested) { r.x = spawn_location_x; r.y = spawn_location_y; }
       for (int i = 0; i < simulation_length; i++) {
@@ -132,9 +135,16 @@ class NicheBreeder extends Thread {
     Float previous_best = null;
     int num_successful_gens = 0;
     int num_generations = 0;
+    int num_failures_in_row = 0;
+
+    // We'll keep track of the best generation we've made
+    NeuralNetwork[] best_gen = null;
     
     // Start with a pile of random roombas
     NeuralNetwork[] p_gen = test_solutions(create_first_generation());
+    
+    best_gen = p_gen;
+    
     while (true) {
       // Create and test a new generation
       NeuralNetwork[] n_gen = test_solutions(create_next_generation(p_gen));
@@ -146,14 +156,25 @@ class NicheBreeder extends Thread {
       num_generations++;
 
       // If we did better than the previous generation, then that's a successful generation!
-      if (previous_best == null || n_gen[0].score > previous_best)
+      if (previous_best == null || n_gen[0].score > previous_best) {
         num_successful_gens++;
+        num_failures_in_row = 0;
+        previous_best = n_gen[0].score;
+        best_gen = n_gen;
+        print("\n--- New Best Score Found ("); print(previous_best); print(") --- \n");
+      } else {
+        num_failures_in_row++;
+      }
 
       // New generation is now the old generation
       p_gen = n_gen;
       
-      // Which means the new best is now the previous best
-      previous_best = p_gen[0].score;
+      // Except if we just exceeded our number of momentum gens in a row
+      if (num_failures_in_row > num_momentum_gens) {
+        p_gen = best_gen;
+        print("\n---Too many consecutive failures, going back to best gen. ---\n");
+        num_failures_in_row = 0;
+      }
       
       // If more than 1 in every five generations is successful, we'll raise the mutation rate
       // But if it gets waaaay too small, then this indicates making the lr smaller isn't helping 
