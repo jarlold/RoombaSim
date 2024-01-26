@@ -9,19 +9,19 @@ class NicheBreeder extends Thread {
   
   final float spawn_location_x = 400; // Where to shitout the roombas
   final float spawn_location_y = 100; 
-  final float simulation_length = 2000*4; // How many frames the simulation should last for
+  final float simulation_length = 2000*2; // How many frames the simulation should last for
   
   boolean visible = false; // Whether or not there are any roombas in the testing array that we can draw
-  int simulation_speed = 0; // How many ms to wait between simulation steps (if visible)
+  int simulation_speed = 1; // How many ms to wait between simulation steps (if visible)
   
-  final int num_dusts = 100;
+  final int num_dusts = 150;
 
   //Meta parameters
   final int population_size = 30;
   final float starting_lr = 0.1f; // How big the changes we make to our mutations should be
   final int starting_mutation_rate = 1; // How many mutations we should make per mutant roomba
-  final int num_simulation_samples = 3; // How many times to run the simulation for each roomba, the score will be an average of the performance.
-  final int num_momentum_gens = 3; // How many generations can fail before we reset to the previous best known
+  final int num_simulation_samples = 5; // How many times to run the simulation for each roomba, the score will be an average of the performance.
+  final int num_momentum_gens = 1; // How many generations can fail before we reset to the previous best known
   
   // Runtime variables
   ArrayList<Wall> walls;
@@ -52,6 +52,10 @@ class NicheBreeder extends Thread {
   }
 
 
+  float calculate_roomba_score(Roomba r) {
+    return  (r.dust_eaten - r.num_collisions*(dusts.length / 3000.0)*0);
+  }
+
   // Tests all the neural networks in a simulation. Sets their 'scores' based off performance
   NeuralNetwork[] test_solutions(NeuralNetwork[] solutions) {
     // Todo: Roomba internal states aren't being reset between simulation samples
@@ -61,8 +65,10 @@ class NicheBreeder extends Thread {
     
     // Create a series of roomba objects
     roombas_being_tested = new Roomba[solutions.length];
+    
+    // Each simulation run, we will give the neural networks new bodies
     for (int i = 0; i < solutions.length; i++) {
-      roombas_being_tested[i] = neural_network_to_roomba(solutions[i]);
+        roombas_being_tested[i] = neural_network_to_roomba(solutions[i]);
     }
     
     // It should be safe to draw them again, now that we've finished generating Roomba objects
@@ -73,20 +79,24 @@ class NicheBreeder extends Thread {
     for (int j = 0; j < num_simulation_samples; j++) {
       //Randomize the dust particles in the room
       this.dusts = generate_dust(num_dusts);
-      // TODO: THIS IS NOT A REAL SOLUTION TO THE RESETING PROBLEM FIX THIS LATER
-      for (Roomba r : roombas_being_tested) { r.x = spawn_location_x; r.y = spawn_location_y; }
+      
       for (int i = 0; i < simulation_length; i++) {
         if (this.visible) delay(simulation_speed);
         for (Roomba r : roombas_being_tested) {
           r.forward();
         }
       }
+            
+      // Each simulation run, we will give the neural networks new bodies
+      for (int i = 0; i < solutions.length; i++) {
+        solutions[i].score += calculate_roomba_score(roombas_being_tested[i]);
+        roombas_being_tested[i] = neural_network_to_roomba(solutions[i]);
+      }
     }
     
-    // Then based off that, ascribe their scores to the neural networks that were piloting them
     for (int i = 0; i < solutions.length; i++)
-      solutions[i].score = ( roombas_being_tested[i].dust_eaten -roombas_being_tested[i].num_collisions*(dusts.length / 3000.0)*0 ) / num_simulation_samples;
-      
+      solutions[i].score /= num_simulation_samples;
+
     return solutions;
   }
   
