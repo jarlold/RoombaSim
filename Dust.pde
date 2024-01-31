@@ -27,10 +27,10 @@ class Dust {
     if (collides_with(r)) {
       if (eaten_by.contains(r)) {
         color_intensity += 25;
-        // Pulse red if we've eaten it before (and the roomba loses points)
+        // Pulse red if we've eaten it before (and the roomba isn't gaining points)
         if (!pulsing) pulsing_color = color(255, 0, 0);
         pulsing = true;
-        return 0; // -1;
+        return 0;
       } else {
         // Pulse green if we've never eaten it (and the roomba is gaining points)
         if (!pulsing) pulsing_color = color(0, 255, 0);

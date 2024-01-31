@@ -53,7 +53,7 @@ class NicheBreeder extends Thread {
 
 
   float calculate_roomba_score(Roomba r) {
-    return  (r.dust_eaten - r.num_collisions*(dusts.length / 3000.0)*0);
+    return r.dust_eaten - r.num_collisions*(dusts.length / 3000.0) - 3*(num_dusts - r.dust_eaten);
   }
 
   // Tests all the neural networks in a simulation. Sets their 'scores' based off performance
