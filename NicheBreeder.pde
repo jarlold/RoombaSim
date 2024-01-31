@@ -53,7 +53,7 @@ class NicheBreeder extends Thread {
 
 
   float calculate_roomba_score(Roomba r) {
-    return r.dust_eaten - r.num_collisions*(dusts.length / 3000.0) - 3*(num_dusts - r.dust_eaten);
+    return r.dust_eaten; // - r.num_collisions*(dusts.length / 3000.0);
   }
 
   // Tests all the neural networks in a simulation. Sets their 'scores' based off performance
@@ -170,7 +170,13 @@ class NicheBreeder extends Thread {
         num_successful_gens++;
         num_failures_in_row = 0;
         previous_best = n_gen[0].score;
-        best_gen = n_gen;
+        
+        // We have to actually clone the new generation or it'll just be a pointer to it and we'll slowly corrupt
+        // it each iteration
+        best_gen = new NeuralNetwork[n_gen.length];
+        for (int i = 0; i < n_gen.length; i++) best_gen[i] = new NeuralNetwork(n);
+        
+        
         print("\n--- New Best Score Found ("); print(previous_best); print(") --- \n");
       } else {
         num_failures_in_row++;

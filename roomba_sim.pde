@@ -59,13 +59,16 @@ void draw() {
 }
 
 
-void mouseClicked() {
-  if (rb.currently_testing) {
-    print(rb.roombas_being_tested[0].instincts.get_distance(rb.roombas_being_tested[1].instincts));
-    print("\n");
+void keyPressed() {
+  if (key == 61) 
+    rb.simulation_speed /= 2;
+
+
+  if (key == 45) {
+    rb.simulation_speed *= 2;
+    if (rb.simulation_speed < 0.1)
+      rb.simulation_speed = 1;
   }
-  
-  
+
 }
-  
   
