@@ -17,6 +17,7 @@ class NicheBreeder extends Thread {
   final int num_dusts = 150;
 
   //Meta parameters
+  final int break_after_n_failed_gens = 15;
   final int population_size = 30;
   final float starting_lr = 0.1f; // How big the changes we make to our mutations should be
   final int starting_mutation_rate = 1; // How many mutations we should make per mutant roomba
@@ -146,6 +147,7 @@ class NicheBreeder extends Thread {
     int num_successful_gens = 0;
     int num_generations = 0;
     int num_failures_in_row = 0;
+    int num_resets_in_row = 0;
 
     // We'll keep track of the best generation we've made
     NeuralNetwork[] best_gen = null;
@@ -169,28 +171,21 @@ class NicheBreeder extends Thread {
       if (previous_best == null || n_gen[0].score > previous_best) {
         num_successful_gens++;
         num_failures_in_row = 0;
+        num_resets_in_row = 0;
         previous_best = n_gen[0].score;
         
         // We have to actually clone the new generation or it'll just be a pointer to it and we'll slowly corrupt
         // it each iteration
-        best_gen = new NeuralNetwork[n_gen.length];
-        for (int i = 0; i < n_gen.length; i++) best_gen[i] = new NeuralNetwork(n);
-        
+        best_gen = p_gen; //new NeuralNetwork[n_gen.length];
+        //for (int i = 0; i < n_gen.length; i++) best_gen[i] = new NeuralNetwork(n_gen[i]);
         
         print("\n--- New Best Score Found ("); print(previous_best); print(") --- \n");
       } else {
         num_failures_in_row++;
       }
-
+      
       // New generation is now the old generation
       p_gen = n_gen;
-      
-      // Except if we just exceeded our number of momentum gens in a row
-      if (num_failures_in_row > num_momentum_gens) {
-        p_gen = best_gen;
-        print("\n---Too many consecutive failures, going back to best gen. ---\n");
-        num_failures_in_row = 0;
-      }
       
       // If more than 1 in every five generations is successful, we'll raise the mutation rate
       // But if it gets waaaay too small, then this indicates making the lr smaller isn't helping 
@@ -203,6 +198,12 @@ class NicheBreeder extends Thread {
         lr = lr * 2.0;
       else
         lr = lr / 2.0;
+        
+      // And if we fail too many times in a row, we'll 
+      if (num_failures_in_row > break_after_n_failed_gens) {
+        print("\n--- Stopping Simulation ---\n");
+        break;
+      }
 
       print("-- Generation Completed --\n");
       print("Generation No.: ");
@@ -217,5 +218,10 @@ class NicheBreeder extends Thread {
       print(mutation_rate);
       print("\n--------------------------\n");
     }
+    
+    print("\n--- Simulation Completed ---");
+    print("\nFinal Best Score: "); print(previous_best);
+    print("\nTotal No. Generations: "); print(num_generations);
+    print("\n--------------------------");
   }
 }
