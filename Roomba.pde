@@ -96,12 +96,11 @@ class Roomba {
       float[] input_vector = {
           get_num_col_moving_avg(),
           (360 * (this.bearing / 2 * PI) + random(0, 5)), //360, 
-          time_steps /max_time_steps, 
+          time_steps / max_time_steps, 
           1, //-(this.x + random(0, 2*speed) - width/2) / width, 
-          0, //-(this.y + random(0, 2*speed) - height/2) / height,
-           num_collisions,
+          num_collisions,
           (time_steps - ttl_collision),
-          100*sin(time_steps/(max_time_steps/1000))
+          sin(time_steps)
       };
       
        return input_vector; 

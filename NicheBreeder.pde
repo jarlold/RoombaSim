@@ -2,9 +2,10 @@ import java.util.Arrays;
 class NicheBreeder extends Thread {
   
   // Basic Settings
-  final int INPUT_VECTOR_SIZE = 8;
+  final int INPUT_VECTOR_SIZE = 7;
   final int OUTPUT_VECTOR_SIZE = 1;
-  final int[] LAYER_SIZES = {INPUT_VECTOR_SIZE, 10, 12, 14, 8, OUTPUT_VECTOR_SIZE};
+  final int scale_factor = 3; // for playing around with the size of the neural network
+  final int[] LAYER_SIZES = {INPUT_VECTOR_SIZE, 10*scale_factor, 12*scale_factor, 14*scale_factor, 8*scale_factor, OUTPUT_VECTOR_SIZE};
   final ActivationFunction[] LAYER_ACTIVATIONS = {ActivationFunction.TANH};
   
   final float spawn_location_x = 400; // Where to shitout the roombas
@@ -14,10 +15,10 @@ class NicheBreeder extends Thread {
   boolean visible = false; // Whether or not there are any roombas in the testing array that we can draw
   int simulation_speed = 1; // How many ms to wait between simulation steps (if visible)
   
-  final int num_dusts = 150;
+  final int num_dusts = 50;
 
   //Meta parameters
-  final int break_after_n_failed_gens = 15;
+  final int break_after_n_failed_gens = 250;
   final int population_size = 30;
   final float starting_lr = 0.1f; // How big the changes we make to our mutations should be
   final int starting_mutation_rate = 1; // How many mutations we should make per mutant roomba
@@ -54,7 +55,7 @@ class NicheBreeder extends Thread {
 
 
   float calculate_roomba_score(Roomba r) {
-    return r.dust_eaten; // - r.num_collisions*(dusts.length / 3000.0);
+    return r.dust_eaten - r.num_collisions*(dusts.length / 3000.0);
   }
 
   // Tests all the neural networks in a simulation. Sets their 'scores' based off performance
@@ -147,7 +148,6 @@ class NicheBreeder extends Thread {
     int num_successful_gens = 0;
     int num_generations = 0;
     int num_failures_in_row = 0;
-    int num_resets_in_row = 0;
 
     // We'll keep track of the best generation we've made
     NeuralNetwork[] best_gen = null;
@@ -155,6 +155,9 @@ class NicheBreeder extends Thread {
     // Start with a pile of random roombas
     NeuralNetwork[] p_gen = test_solutions(create_first_generation());
     
+    // Just for setting some initial parameters, we can sort this thing twice it doesn't matter
+    Arrays.sort( p_gen, (o1, o2) -> { if (o1.score > o2.score) return -1; else if(o1.score < o2.score) return 1; else return 0; } );
+    previous_best = p_gen[0].score;
     best_gen = p_gen;
     
     while (true) {
@@ -168,16 +171,15 @@ class NicheBreeder extends Thread {
       num_generations++;
 
       // If we did better than the previous generation, then that's a successful generation!
-      if (previous_best == null || n_gen[0].score > previous_best) {
+      if ( n_gen[0].score > previous_best) {
         num_successful_gens++;
         num_failures_in_row = 0;
-        num_resets_in_row = 0;
         previous_best = n_gen[0].score;
         
         // We have to actually clone the new generation or it'll just be a pointer to it and we'll slowly corrupt
         // it each iteration
-        best_gen = p_gen; //new NeuralNetwork[n_gen.length];
-        //for (int i = 0; i < n_gen.length; i++) best_gen[i] = new NeuralNetwork(n_gen[i]);
+        best_gen = new NeuralNetwork[n_gen.length];
+        for (int i = 0; i < n_gen.length; i++) best_gen[i] = new NeuralNetwork(n_gen[i]);
         
         print("\n--- New Best Score Found ("); print(previous_best); print(") --- \n");
       } else {
@@ -192,9 +194,7 @@ class NicheBreeder extends Thread {
       // the roombas evolve. Maybe they've found the best solution, but it's probably premature convergence.
       // If it's the latter raising the lr will help, if it's the former reseting the lr won't hurt.
       // (since we always add the original parents back)
-      if (lr < starting_lr / 100)
-        lr = starting_lr*5;
-      else if ( (num_successful_gens/num_generations) > 0.2f )
+     if ( (num_successful_gens/num_generations) > 0.2f )
         lr = lr * 2.0;
       else
         lr = lr / 2.0;
@@ -208,7 +208,7 @@ class NicheBreeder extends Thread {
       print("-- Generation Completed --\n");
       print("Generation No.: ");
       print(num_generations);
-      print("\nBest Score: ");
+      print("\nGen. Best Score: ");
       print(p_gen[0].score);
       print("\nWorst Score: ");
       print(p_gen[p_gen.length-1].score);
@@ -223,5 +223,7 @@ class NicheBreeder extends Thread {
     print("\nFinal Best Score: "); print(previous_best);
     print("\nTotal No. Generations: "); print(num_generations);
     print("\n--------------------------");
+    
+    while (true) test_solutions(best_gen);
   }
 }
