@@ -3,7 +3,7 @@ NicheBreeder rb ;
 Roomba player_roomba;
 
 void setup() {
-   randomSeed(42);
+   randomSeed(42+1);
    size(800, 600); 
    
    // Add some furniture to our simulation
@@ -14,8 +14,7 @@ void setup() {
    walls.add(new Wall(0, 200+270, 50, 50));
    walls.add(new Wall(150, 200+270, 50, 50));
    walls.add(new Wall(150, 0, 50, 130));
-   
-      walls.add(new Wall(450, 350, 50, 230));
+   walls.add(new Wall(450, 350, 50, 230));
 
    
    // Just the borders

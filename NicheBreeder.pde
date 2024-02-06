@@ -58,6 +58,11 @@ class NicheBreeder extends Thread {
     return r.dust_eaten - r.num_collisions*(dusts.length / 3000.0);
   }
 
+  // Sort solutions by their score, requires them to already be tested
+  void sort_solutions(NeuralNetwork[] solutions) {
+     Arrays.sort( solutions, (o1, o2) -> { if (o1.score > o2.score) return -1; else if(o1.score < o2.score) return 1; else return 0; } );
+  }
+
   // Tests all the neural networks in a simulation. Sets their 'scores' based off performance
   NeuralNetwork[] test_solutions(NeuralNetwork[] solutions) {
     // Todo: Roomba internal states aren't being reset between simulation samples
@@ -127,7 +132,7 @@ class NicheBreeder extends Thread {
     NeuralNetwork[] new_gen = new NeuralNetwork[previous_generation.length];
 
     // Sort the solutions by score
-    Arrays.sort( previous_generation, (o1, o2) -> { if (o1.score > o2.score) return -1; else if(o1.score < o2.score) return 1; else return 0; } );
+    sort_solutions(previous_generation);
     
     // The top half lives
     for (int i = 0; i < previous_generation.length / 2; i++) {
@@ -156,7 +161,7 @@ class NicheBreeder extends Thread {
     NeuralNetwork[] p_gen = test_solutions(create_first_generation());
     
     // Just for setting some initial parameters, we can sort this thing twice it doesn't matter
-    Arrays.sort( p_gen, (o1, o2) -> { if (o1.score > o2.score) return -1; else if(o1.score < o2.score) return 1; else return 0; } );
+    sort_solutions(p_gen);
     previous_best = p_gen[0].score;
     best_gen = p_gen;
     
@@ -165,7 +170,7 @@ class NicheBreeder extends Thread {
       NeuralNetwork[] n_gen = test_solutions(create_next_generation(p_gen));
       
       // Sort them by their scores (we're doing this twice for some reason...)
-      Arrays.sort( n_gen, (o1, o2) -> { if (o1.score > o2.score) return -1; else if(o1.score < o2.score) return 1; else return 0; } );
+      sort_solutions(n_gen);
 
       // We'll want to keep track of this
       num_generations++;
@@ -199,7 +204,7 @@ class NicheBreeder extends Thread {
       else
         lr = lr / 2.0;
         
-      // And if we fail too many times in a row, we'll 
+      // And if we fail too many times in a row, we'll call it quits
       if (num_failures_in_row > break_after_n_failed_gens) {
         print("\n--- Stopping Simulation ---\n");
         break;
