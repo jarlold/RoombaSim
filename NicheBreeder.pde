@@ -27,6 +27,7 @@ class NicheBreeder extends Thread {
   
   // Runtime variables
   ArrayList<Wall> walls;
+  ArrayList<ArrayList<Wall>> rooms;
   Dust[] dusts;
   public Roomba[] roombas_being_tested;
   public boolean currently_testing = false;
@@ -34,8 +35,8 @@ class NicheBreeder extends Thread {
   int mutation_rate = starting_mutation_rate;
 
   
-  public NicheBreeder (ArrayList<Wall> walls, boolean visible) {
-    this.walls = walls;
+  public NicheBreeder (ArrayList<ArrayList<Wall>> rooms, boolean visible) {
+    this.rooms = rooms;
     this.visible = visible;
     dusts = generate_dust(num_dusts);
   }
@@ -50,6 +51,7 @@ class NicheBreeder extends Thread {
   
   // Utility function because this constructor is really long
   Roomba neural_network_to_roomba(NeuralNetwork instincts) {
+    if (this.walls == null) print("it's me!");
     return new Roomba(spawn_location_x, spawn_location_y, 40, walls, dusts, ControlMode.INSTINCT, instincts);
   }
 
@@ -64,40 +66,47 @@ class NicheBreeder extends Thread {
   }
 
   // Tests all the neural networks in a simulation. Sets their 'scores' based off performance
-  NeuralNetwork[] test_solutions(NeuralNetwork[] solutions) {
-    // Todo: Roomba internal states aren't being reset between simulation samples
+  NeuralNetwork[] test_solutions(NeuralNetwork[] solutions) {    
+    float[] solution_scores = new float[solutions.length];
     
     // Best not try and draw this array while we're overwriting it
     this.currently_testing = false;
     
     // Create a series of roomba objects
     roombas_being_tested = new Roomba[solutions.length];
-    
-    // Each simulation run, we will give the neural networks new bodies
-    for (int i = 0; i < solutions.length; i++) {
-        roombas_being_tested[i] = neural_network_to_roomba(solutions[i]);
-    }
-    
+        
     // It should be safe to draw them again, now that we've finished generating Roomba objects
     // from the neural networks
     this.currently_testing = true;
     
+    
+    //TODO: Jarlold rolls worst `quadruple iteration`. Asked to leave `room cycle rotation`. (its slow fix it somehow)
     // Run them all through the simulation num_simulation_samples times
     for (int j = 0; j < num_simulation_samples; j++) {
-      //Randomize the dust particles in the room
-      this.dusts = generate_dust(num_dusts);
+      // And each cycle we'll test them on each of the rooms...
+      for (ArrayList<Wall> room : rooms) {
+        this.walls = room; // We'll set this to point to the current room so the draw thread can find it
       
-      for (int i = 0; i < simulation_length; i++) {
-        if (this.visible) delay(simulation_speed);
-        for (Roomba r : roombas_being_tested) {
-          r.forward();
+        // Each simulation run, we will give the neural networks new bodies
+        for (int i = 0; i < solutions.length; i++) {
+            roombas_being_tested[i] = neural_network_to_roomba(solutions[i]);
         }
-      }
-            
-      // Each simulation run, we will give the neural networks new bodies
-      for (int i = 0; i < solutions.length; i++) {
-        solutions[i].score += calculate_roomba_score(roombas_being_tested[i]);
-        roombas_being_tested[i] = neural_network_to_roomba(solutions[i]);
+      
+        //Randomize the dust particles in the room
+        this.dusts = generate_dust(num_dusts);
+        
+        // Finally run the actial simulation (We'll run through each roomba in parallel)
+        for (int i = 0; i < simulation_length; i++) {
+          if (this.visible) delay(simulation_speed);
+          for (Roomba r : roombas_being_tested) {
+            r.forward();
+          }
+        }
+              
+        // Write down their scores before purging their bodies of this mortal world
+        for (int i = 0; i < solutions.length; i++) {
+          solution_scores[i] += calculate_roomba_score(roombas_being_tested[i]);
+        }
       }
     }
     

@@ -17,4 +17,5 @@ class Wall {
   public void draw() {
      rect(x, y, w, h); 
   }
+ 
 }
