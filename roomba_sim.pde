@@ -22,15 +22,14 @@ void draw() {
   // Draw the walls
   for (Wall w : rb.walls) w.draw();
   
-  /*
-  player_roomba.draw();
-  player_roomba.forward();
-  */
-  
   // Draw the roombas
   if (rb.currently_testing) {
-    for (Roomba r: rb.roombas_being_tested) {
-      r.draw();
+    try{
+      for (Roomba r: rb.roombas_being_tested) {
+          r.draw();
+      }
+    } catch (Exception e) {
+      print("\n -- There was some sort of error drawing roombas, we're just gonna ignore it. --\n");
     }
   }
 }

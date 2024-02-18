@@ -200,17 +200,17 @@ class Roomba {
   }
   
   void on_mouse_over() {
+    // This is not so helpful anymore
+    //fill( color(255, 255, 255));
+    //rect(0, 0, 300, 200);
+    //float[] iv = get_input_vector();
     
-    fill( color(255, 255, 255));
-    rect(0, 0, 300, 200);
-    float[] iv = get_input_vector();
     
+    //fill( color(0, 0, 0));
+    //for (int i = 0; i < iv.length; i++)
+    //  text(str(iv[i]), 10, 20*i);
     
-    fill( color(0, 0, 0));
-    for (int i = 0; i < iv.length; i++)
-      text(str(iv[i]), 10, 20*i);
-    
-    textSize(20);    
+    //textSize(20);    
   }
   
   

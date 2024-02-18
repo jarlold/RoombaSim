@@ -10,7 +10,7 @@ class NicheBreeder extends Thread {
   
   final float spawn_location_x = 400; // Where to shitout the roombas
   final float spawn_location_y = 100; 
-  final float simulation_length = 2000*2; // How many frames the simulation should last for
+  final float simulation_length = 2000*2*2; // How many frames the simulation should last for
   
   boolean visible = false; // Whether or not there are any roombas in the testing array that we can draw
   int simulation_speed = 1; // How many ms to wait between simulation steps (if visible)
@@ -18,12 +18,12 @@ class NicheBreeder extends Thread {
   final int num_dusts = 50;
 
   //Meta parameters
-  final int break_after_n_failed_gens = 250;
-  final int population_size = 30;
+  final int break_after_n_failed_gens = 1000;
+  final int population_size = 50;
   final float starting_lr = 0.1f; // How big the changes we make to our mutations should be
   final int starting_mutation_rate = 1; // How many mutations we should make per mutant roomba
   final int num_simulation_samples = 5; // How many times to run the simulation for each roomba, the score will be an average of the performance.
-  final int num_momentum_gens = 1; // How many generations can fail before we reset to the previous best known
+  final int num_momentum_gens = 2; // How many generations can fail before we reset to the previous best known
   
   // Runtime variables
   ArrayList<Wall> walls;
@@ -209,9 +209,9 @@ class NicheBreeder extends Thread {
       // If it's the latter raising the lr will help, if it's the former reseting the lr won't hurt.
       // (since we always add the original parents back)
      if ( (num_successful_gens/num_generations) > 0.2f )
-        lr = lr * 2.0;
+        lr = lr * 1.1f; //2.0;
       else
-        lr = lr / 2.0;
+        lr = lr / 0.9f; //0.5f;
         
       // And if we fail too many times in a row, we'll call it quits
       if (num_failures_in_row > break_after_n_failed_gens) {
