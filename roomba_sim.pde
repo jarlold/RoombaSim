@@ -20,7 +20,8 @@ void draw() {
   for (Dust d : rb.dusts) d.draw();
   
   // Draw the walls
-  for (Wall w : rb.walls) w.draw();
+  if (rb.walls != null)
+    for (Wall w : rb.walls) w.draw();
   
   // Draw the roombas
   if (rb.currently_testing) {

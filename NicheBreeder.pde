@@ -19,11 +19,11 @@ class NicheBreeder extends Thread {
 
   //Meta parameters
   final int break_after_n_failed_gens = 1000;
-  final int population_size = 50;
+  final int population_size = 250;
   final float starting_lr = 0.1f; // How big the changes we make to our mutations should be
   final int starting_mutation_rate = 1; // How many mutations we should make per mutant roomba
   final int num_simulation_samples = 5; // How many times to run the simulation for each roomba, the score will be an average of the performance.
-  final int num_momentum_gens = 2; // How many generations can fail before we reset to the previous best known
+  final int num_momentum_gens = 5; // How many generations can fail before we reset to the previous best known
   
   // Runtime variables
   ArrayList<Wall> walls;
@@ -51,13 +51,13 @@ class NicheBreeder extends Thread {
   
   // Utility function because this constructor is really long
   Roomba neural_network_to_roomba(NeuralNetwork instincts) {
-    if (this.walls == null) print("it's me!");
+    if (this.walls == null) print("");
     return new Roomba(spawn_location_x, spawn_location_y, 40, walls, dusts, ControlMode.INSTINCT, instincts);
   }
 
 
   float calculate_roomba_score(Roomba r) {
-    return r.dust_eaten - r.num_collisions*(dusts.length / 3000.0);
+    return r.dust_eaten - r.num_collisions*10*(dusts.length / 3000.0);
   }
 
   // Sort solutions by their score, requires them to already be tested
@@ -111,7 +111,7 @@ class NicheBreeder extends Thread {
     }
     
     for (int i = 0; i < solutions.length; i++)
-      solutions[i].score /= num_simulation_samples;
+      solutions[i].score = solution_scores[i] / num_simulation_samples;
 
     return solutions;
   }
@@ -199,9 +199,23 @@ class NicheBreeder extends Thread {
       } else {
         num_failures_in_row++;
       }
-      
+            
       // New generation is now the old generation
       p_gen = n_gen;
+      
+      // Print out the status of the genetic algorithm after each generation
+      print("-- Generation Completed --\n");
+      print("Generation No.: ");
+      print(num_generations);
+      print("\nGen. Best Score: ");
+      print(n_gen[0].score);
+      print("\nWorst Score: ");
+      print(n_gen[p_gen.length-1].score);
+      print("\nLearning Rate: ");
+      print(lr);
+      print("\nMutation Rate: ");
+      print(mutation_rate);
+      print("\n--------------------------\n");
       
       // If more than 1 in every five generations is successful, we'll raise the mutation rate
       // But if it gets waaaay too small, then this indicates making the lr smaller isn't helping 
@@ -209,7 +223,7 @@ class NicheBreeder extends Thread {
       // If it's the latter raising the lr will help, if it's the former reseting the lr won't hurt.
       // (since we always add the original parents back)
      if ( (num_successful_gens/num_generations) > 0.2f )
-        lr = lr * 1.1f; //2.0;
+        lr = lr * 1.1f; //2
       else
         lr = lr / 0.9f; //0.5f;
         
@@ -218,19 +232,6 @@ class NicheBreeder extends Thread {
         print("\n--- Stopping Simulation ---\n");
         break;
       }
-
-      print("-- Generation Completed --\n");
-      print("Generation No.: ");
-      print(num_generations);
-      print("\nGen. Best Score: ");
-      print(p_gen[0].score);
-      print("\nWorst Score: ");
-      print(p_gen[p_gen.length-1].score);
-      print("\nLearning Rate: ");
-      print(lr);
-      print("\nMutation Rate: ");
-      print(mutation_rate);
-      print("\n--------------------------\n");
     }
     
     print("\n--- Simulation Completed ---");
