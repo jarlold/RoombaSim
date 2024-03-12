@@ -99,10 +99,9 @@ ArrayList<ArrayList<Wall>> get_rooms() {
   ArrayList<ArrayList<Wall>> rooms = new ArrayList();
 
   // Add the first room
-    rooms.add(get_second_room());
-
   rooms.add(get_third_room());
   rooms.add(get_first_room());     
+  rooms.add(get_second_room());
 
   return rooms;
 }

@@ -1,51 +1,58 @@
-NicheBreeder rb ;
+//NicheBreeder rb ;
 Roomba player_roomba;
-
+  ArrayList<Wall> walls;
 void setup() {
    randomSeed(42+1);
    size(800, 600); 
 
    // If we crash, don't bleach my eyeballs
    background(0);
+   walls = get_first_room();
    
-   // Start by trying to breed one niche, in the background using threading
-   rb = new NicheBreeder(get_rooms(), true);
-   rb.start();
-}
+   Dust[] d = new Dust[0];
 
+   player_roomba = new Roomba(400.0f, 180.0f, 40.0f, walls, d, ControlMode.MOUSE, null);
+   
+//   // Start by trying to breed one niche, in the background using threading
+//   rb = new NicheBreeder(get_rooms(), true);
+//   rb.start();
+}
 void draw() {
   background(40);
-
+  
+  for (Wall w : walls) w.draw();
+  player_roomba.draw();
+  player_roomba.forward();
   //Draw the dust
-  for (Dust d : rb.dusts) d.draw();
+  //for (Dust d : rb.dusts) d.draw();
   
   // Draw the walls
-  if (rb.walls != null)
-    for (Wall w : rb.walls) w.draw();
+  //if (rb.walls != null)
+  //  for (Wall w : rb.walls) w.draw();
   
   // Draw the roombas
-  if (rb.currently_testing) {
-    try{
-      for (Roomba r: rb.roombas_being_tested) {
-         r.draw();
-      }
-    } catch (Exception e) {
-      print("\n -- There was some sort of error drawing roombas, we're just gonna ignore it. --\n");
-    }
-  }
+  //if (rb.currently_testing) {
+  //  try{
+  //    for (Roomba r: rb.roombas_being_tested) {
+  //       r.draw();
+  //    }
+  //  } catch (Exception e) {
+  //    print("\n -- There was some sort of error drawing roombas, we're just gonna ignore it. --\n");
+  //  }
+  //}
 }
 
 
 void keyPressed() {
-  if (key == 61) 
-    rb.simulation_speed /= 2;
+  //if (key == 61) 
+  //  rb.simulation_speed /= 2;
 
 
-  if (key == 45) {
-    rb.simulation_speed *= 2;
-    if (rb.simulation_speed < 0.1)
-      rb.simulation_speed = 1;
-  }
+  //if (key == 45) {
+  //  rb.simulation_speed *= 2;
+  //  if (rb.simulation_speed < 0.1)
+  //    rb.simulation_speed = 1;
+  //}
 
 }
   
