@@ -15,7 +15,7 @@ class Wall {
   }
   
   public void draw() {
-     fill(194, 240, 240);
+     fill(255, 255, 255);
      rect(x, y, w, h); 
      fill(255);
   }

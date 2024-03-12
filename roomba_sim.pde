@@ -14,7 +14,7 @@ void setup() {
 }
 
 void draw() {
-  background(125);
+  background(40);
 
   //Draw the dust
   for (Dust d : rb.dusts) d.draw();
@@ -27,7 +27,7 @@ void draw() {
   if (rb.currently_testing) {
     try{
       for (Roomba r: rb.roombas_being_tested) {
-          r.draw();
+         r.draw();
       }
     } catch (Exception e) {
       print("\n -- There was some sort of error drawing roombas, we're just gonna ignore it. --\n");
