@@ -38,8 +38,6 @@ class Dust {
         pulsing = true;
         return 1;
       }
-      
-      
     }
     return 0;
   }

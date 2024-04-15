@@ -19,7 +19,7 @@ class NicheBreeder extends Thread {
 
   //Meta parameters
   final int break_after_n_failed_gens = 1000;
-  final int population_size = 250;
+  final int population_size = 50; //250;
   final float starting_lr = 0.1f; // How big the changes we make to our mutations should be
   final int starting_mutation_rate = 1; // How many mutations we should make per mutant roomba
   final int num_simulation_samples = 5; // How many times to run the simulation for each roomba, the score will be an average of the performance.
