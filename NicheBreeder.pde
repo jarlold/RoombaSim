@@ -19,7 +19,7 @@ class NicheBreeder extends Thread {
 
   //Meta parameters
   final int break_after_n_generations = 1000000;
-  final int population_size = 50; //250;
+  final int population_size = 150; //250;
   final float starting_lr = 0.1f; // How big the changes we make to our mutations should be
   final int starting_mutation_rate = 1; // How many mutations we should make per mutant roomba
   final int num_simulation_samples = 5; // How many times to run the simulation for each roomba, the score will be an average of the performance.
@@ -57,7 +57,7 @@ class NicheBreeder extends Thread {
 
 
   float calculate_roomba_score(Roomba r) {
-    return r.dust_eaten - r.num_collisions*10*(dusts.length / 3000.0);
+    return r.dust_eaten; // - r.num_collisions*10*(dusts.length / 3000.0);
   }
 
   // Sort solutions by their score, requires them to already be tested
@@ -141,7 +141,8 @@ class NicheBreeder extends Thread {
     NeuralNetwork[] new_gen = new NeuralNetwork[previous_generation.length];
 
     // Sort the solutions by score
-    sort_solutions(previous_generation);
+    // this should be done before the array gets to this function
+    //sort_solutions(previous_generation);
     
     // The top half lives
     for (int i = 0; i < previous_generation.length / 2; i++) {
@@ -178,7 +179,7 @@ class NicheBreeder extends Thread {
       // Create and test a new generation
       NeuralNetwork[] n_gen = test_solutions(create_next_generation(p_gen));
       
-      // Sort them by their scores (we're doing this twice for some reason...)
+      // Sort them by their scores
       sort_solutions(n_gen);
 
       // We'll want to keep track of this
@@ -225,11 +226,11 @@ class NicheBreeder extends Thread {
      if ( (num_successful_gens/num_generations) > 0.2f )
         lr = lr * 1.1f; //2
       else
-        lr = lr / 0.9f; //0.5f;
+        lr = lr * 0.9f; //0.5f;
         
       // If we use up all our momentum generations, then we reset back to the best generation we know
       if (num_failures_in_row > num_momentum_gens) {
-        print("--- Exceeded Maximum Momentum Gens. Reseting... --");
+        print("--- Exceeded Maximum Momentum Gens. Resetting... ---\n");
         num_failures_in_row = 0;
         p_gen = new NeuralNetwork[n_gen.length];
         for (int i = 0; i < n_gen.length; i++) p_gen[i] = new NeuralNetwork(best_gen[i]);

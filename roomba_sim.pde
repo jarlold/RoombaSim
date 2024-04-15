@@ -10,8 +10,6 @@ void setup() {
    walls = get_first_room();
    
    Dust[] d = new Dust[0];
-
-//player_roomba = new Roomba(400.0f, 180.0f, 40.0f, walls, d, ControlMode.MOUSE, null);
    
    // Start by trying to breed one niche, in the background using threading
    rb = new NicheBreeder(get_rooms(), true);
@@ -20,11 +18,8 @@ void setup() {
 void draw() {
   background(40);
   
-  //for (Wall w : walls) w.draw();
-  //player_roomba.draw();
-  //player_roomba.forward();
   //Draw the dust
-  //for (Dust d : rb.dusts) d.draw();
+  for (Dust d : rb.dusts) d.draw();
   
   // Draw the walls
   if (rb.walls != null)
