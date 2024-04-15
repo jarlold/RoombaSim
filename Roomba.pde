@@ -9,7 +9,7 @@ class Roomba {
     ArrayList<Wall> walls;
     Dust[] dusts;
     float dbearing = 0;
-    ControlMode player_controls;
+    ControlMode control_method;
     public NeuralNetwork instincts;
     
     
@@ -41,7 +41,7 @@ class Roomba {
       this.speed = 1f;
       this.bearing = 0f;
       this.walls = walls;
-      this.player_controls = pc;
+      this.control_method = pc;
       this.instincts = instincts;
       this.dusts = dusts;
     }
@@ -52,10 +52,8 @@ class Roomba {
     }  
   
     public void draw() {      
-      if (abs(mouseX - x) <= size & abs(mouseY - y) <= size)
-        on_mouse_over();
-      
-      do_player_controls();
+      //if (abs(mouseX - x) <= size & abs(mouseY - y) <= size)
+      //  on_mouse_over();
       fill(c);
       circle(x, y, size); 
       fill(255);
@@ -137,7 +135,12 @@ class Roomba {
    }
 
    
-   public void forward() {    
+   public void forward() {
+     // We'll only update our bearing every 5 ticks
+     // This is to prevent my computer from melting, and to prevent the adjustements
+     // from being very small, and thus depending on very small floating points.
+     if (time_steps % 5 == 0) 
+       do_controls();
      time_steps += 1;
     
      // Record the roombas positioning for evaluation later
@@ -174,8 +177,8 @@ class Roomba {
    }
    
 
-  private void do_player_controls() {
-    switch(this.player_controls) {
+  private void do_controls() {
+    switch(this.control_method) {
       case MOUSE:     
         float dx = this.x - mouseX;
         float dy = this.y - mouseY;

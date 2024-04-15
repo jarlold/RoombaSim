@@ -1,6 +1,6 @@
 NicheBreeder rb ;
 void setup() {
-   randomSeed(42+1+1);
+   randomSeed(42);
    size(800, 600); 
    // If we crash, don't bleach my eyeballs
    background(0);

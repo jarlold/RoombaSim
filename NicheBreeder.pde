@@ -10,7 +10,7 @@ class NicheBreeder extends Thread {
   
   final float spawn_location_x = 400; // Where to shitout the roombas
   final float spawn_location_y = 100; 
-  final float simulation_length = 2000*2; // How many frames the simulation should last for
+  final float simulation_length = 2000*4; // How many frames the simulation should last for
   
   boolean visible = false; // Whether or not there are any roombas in the testing array that we can draw
   int simulation_speed = 1; // How many ms to wait between simulation steps (if visible)
@@ -22,7 +22,7 @@ class NicheBreeder extends Thread {
   final int population_size = 150; //250;
   final float starting_lr = 0.1f; // How big the changes we make to our mutations should be
   final int starting_mutation_rate = 1; // How many mutations we should make per mutant roomba
-  final int num_simulation_samples = 5; // How many times to run the simulation for each roomba, the score will be an average of the performance.
+  final int num_simulation_samples = 3; // How many times to run the simulation for each roomba, the score will be an average of the performance.
   final int num_momentum_gens = 5; // How many generations can fail before we reset to the previous best known
   
   // Runtime variables
@@ -99,7 +99,7 @@ class NicheBreeder extends Thread {
         //Randomize the dust particles in the room
         this.dusts = generate_dust(num_dusts);
         
-        // Finally run the actial simulation (We'll run through each roomba in parallel)
+        // Finally run the actual simulation (We'll run through each roomba in parallel)
         for (int i = 0; i < simulation_length; i++) {
           if (this.visible) delay(simulation_speed);
           for (Roomba r : roombas_being_tested) {
@@ -232,14 +232,17 @@ class NicheBreeder extends Thread {
       print("\n--------------------------\n");
       
       // If more than 1 in every five generations is successful, we'll raise the mutation rate
-      // But if it gets waaaay too small, then this indicates making the lr smaller isn't helping 
-      // the roombas evolve. Maybe they've found the best solution, but it's probably premature convergence.
-      // If it's the latter raising the lr will help, if it's the former reseting the lr won't hurt.
-      // (since we always add the original parents back)
+      // If not we'll lower it to get some finer detail
      if ( (num_successful_gens/num_generations) > 0.2f )
         lr = lr * 1.1f; //2
       else
         lr = lr * 0.9f; //0.5f;
+        
+      // But if it gets waaaay too small, then this indicates making the lr smaller isn't helping 
+      // the roombas evolve. Maybe they've found the best solution, but it's probably premature convergence.
+      // If it's the latter raising the lr will help, if it's the former reseting the lr won't hurt (because of ratcheting)
+      if (lr < 0.000001) // Let's not pretend floating point multiplication isn't cringe--
+         lr = 0.0001f; // Just fuck my shit up bro just make it shitty.
         
       // If we use up all our momentum generations, then we reset back to the best generation we know
       if (moment_gens_used > num_momentum_gens) {
