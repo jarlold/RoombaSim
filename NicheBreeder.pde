@@ -18,7 +18,7 @@ class NicheBreeder extends Thread {
   final int num_dusts = 50;
 
   //Meta parameters
-  final int break_after_n_failed_gens = 1000;
+  final int break_after_n_generations = 1000000;
   final int population_size = 50; //250;
   final float starting_lr = 0.1f; // How big the changes we make to our mutations should be
   final int starting_mutation_rate = 1; // How many mutations we should make per mutant roomba
@@ -227,8 +227,16 @@ class NicheBreeder extends Thread {
       else
         lr = lr / 0.9f; //0.5f;
         
-      // And if we fail too many times in a row, we'll call it quits
-      if (num_failures_in_row > break_after_n_failed_gens) {
+      // If we use up all our momentum generations, then we reset back to the best generation we know
+      if (num_failures_in_row > num_momentum_gens) {
+        print("--- Exceeded Maximum Momentum Gens. Reseting... --");
+        num_failures_in_row = 0;
+        p_gen = new NeuralNetwork[n_gen.length];
+        for (int i = 0; i < n_gen.length; i++) p_gen[i] = new NeuralNetwork(best_gen[i]);
+      }
+        
+      // And of course if we hit the maximum number of generations stop the simulations
+      if ( num_generations > break_after_n_generations) {
         print("\n--- Stopping Simulation ---\n");
         break;
       }
