@@ -10,12 +10,12 @@ class NicheBreeder extends Thread {
   
   final float spawn_location_x = 400; // Where to shitout the roombas
   final float spawn_location_y = 100; 
-  final float simulation_length = 2000*2*2; // How many frames the simulation should last for
+  final float simulation_length = 2000*2; // How many frames the simulation should last for
   
   boolean visible = false; // Whether or not there are any roombas in the testing array that we can draw
   int simulation_speed = 1; // How many ms to wait between simulation steps (if visible)
   
-  final int num_dusts = 50;
+  final int num_dusts = 75;
 
   //Meta parameters
   final int break_after_n_generations = 1000000;
@@ -33,12 +33,16 @@ class NicheBreeder extends Thread {
   public boolean currently_testing = false;
   float lr = starting_lr;
   int mutation_rate = starting_mutation_rate;
+  
+  // Logging
+  PrintWriter log_file ;
 
   
   public NicheBreeder (ArrayList<ArrayList<Wall>> rooms, boolean visible) {
     this.rooms = rooms;
     this.visible = visible;
     dusts = generate_dust(num_dusts);
+    this.log_file = createWriter("log.txt");
   }
   
   
@@ -110,6 +114,10 @@ class NicheBreeder extends Thread {
       }
     }
     
+    // Average the score out accross the number of simulations we sampled.
+    // Not actually helpful to the algorithm, but it lets us understand the outputs
+    // better. We in theory could divide before printing, but then I'd have to do it when
+    // things crash and I don't want to.
     for (int i = 0; i < solutions.length; i++)
       solutions[i].score = solution_scores[i] / num_simulation_samples;
 
@@ -162,7 +170,8 @@ class NicheBreeder extends Thread {
     Float previous_best = null;
     int num_successful_gens = 0;
     int num_generations = 0;
-    int num_failures_in_row = 0;
+    int moment_gens_used = 0;        // This variable and the one below it are almost the same
+    int gens_since_last_success = 0; // except "momentum gens used" gets reset to 0 when we return to previous best known gen.
 
     // We'll keep track of the best generation we've made
     NeuralNetwork[] best_gen = null;
@@ -188,7 +197,8 @@ class NicheBreeder extends Thread {
       // If we did better than the previous generation, then that's a successful generation!
       if ( n_gen[0].score > previous_best) {
         num_successful_gens++;
-        num_failures_in_row = 0;
+        moment_gens_used = 0;
+        gens_since_last_success = 0;
         previous_best = n_gen[0].score;
         
         // We have to actually clone the new generation or it'll just be a pointer to it and we'll slowly corrupt
@@ -198,7 +208,8 @@ class NicheBreeder extends Thread {
         
         print("\n--- New Best Score Found ("); print(previous_best); print(") --- \n");
       } else {
-        num_failures_in_row++;
+        moment_gens_used++;
+        gens_since_last_success++;
       }
             
       // New generation is now the old generation
@@ -216,6 +227,8 @@ class NicheBreeder extends Thread {
       print(lr);
       print("\nMutation Rate: ");
       print(mutation_rate);
+      print("\nGens Since Success: ");
+      print(gens_since_last_success);
       print("\n--------------------------\n");
       
       // If more than 1 in every five generations is successful, we'll raise the mutation rate
@@ -229,9 +242,9 @@ class NicheBreeder extends Thread {
         lr = lr * 0.9f; //0.5f;
         
       // If we use up all our momentum generations, then we reset back to the best generation we know
-      if (num_failures_in_row > num_momentum_gens) {
+      if (moment_gens_used > num_momentum_gens) {
         print("--- Exceeded Maximum Momentum Gens. Resetting... ---\n");
-        num_failures_in_row = 0;
+        moment_gens_used = 0;
         p_gen = new NeuralNetwork[n_gen.length];
         for (int i = 0; i < n_gen.length; i++) p_gen[i] = new NeuralNetwork(best_gen[i]);
       }

@@ -1,15 +1,9 @@
 NicheBreeder rb ;
-Roomba player_roomba;
-ArrayList<Wall> walls;
 void setup() {
-   randomSeed(42+1);
+   randomSeed(42+1+1);
    size(800, 600); 
-
    // If we crash, don't bleach my eyeballs
    background(0);
-   walls = get_first_room();
-   
-   Dust[] d = new Dust[0];
    
    // Start by trying to breed one niche, in the background using threading
    rb = new NicheBreeder(get_rooms(), true);
