@@ -34,15 +34,10 @@ class NicheBreeder extends Thread {
   float lr = starting_lr;
   int mutation_rate = starting_mutation_rate;
   
-  // Logging
-  PrintWriter log_file ;
-
-  
   public NicheBreeder (ArrayList<ArrayList<Wall>> rooms, boolean visible) {
     this.rooms = rooms;
     this.visible = visible;
     dusts = generate_dust(num_dusts);
-    this.log_file = createWriter("log.txt");
   }
   
   
