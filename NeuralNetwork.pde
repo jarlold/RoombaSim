@@ -88,6 +88,38 @@ class NeuralNetwork {
         }
     }
     
+ }
+ 
+ public String toString() {
+  String output = "LAYERS:\n"; // Windows users can eat my shorts \n for life \n gang 
+  
+  // First we'll output the structure of the network. This could be inferred, but its not much data and
+  // will make reading the neural network back much easier.
+  for (Layer l : this.layers)
+    output += "HIDDEN LAYER " + l.getActivationFunctionName() + " " + Integer.toString(l.weights.length) + " " + Integer.toString(l.weights[0].length) + "\n";
+  
+  // Now we'll print out their actual values
+  output += "\nWEIGHTS\n";
+  
+  // Then print out the weights something like this:
+  // 1 1 1 1 1 1 | 2 2 2 2 2 | 3333
+  // 4 4 4 4 4 4 4 4 | 5 5 5 5 5 5 | 3 3
+  // Except thats not a valid network shape but you get the idea, right?
+  for (Layer l : this.layers) {
+    for (float[] weights : l.weights) {
+      for (float w : weights)
+        output += " " + Float.toString(w);
+      output += "\n";
+    }
+    output += "\n\n";
   }
+  return output;
+ }
+ 
+ public void save(String filepath) {
+   String[] cont = new String[1];
+   cont[0] = this.toString();
+   saveStrings(filepath, cont);
+ }
   
 }

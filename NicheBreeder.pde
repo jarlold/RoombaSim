@@ -10,7 +10,7 @@ class NicheBreeder extends Thread {
   
   final float spawn_location_x = 400; // Where to shitout the roombas
   final float spawn_location_y = 100; 
-  final float simulation_length = 2000*4; // How many frames the simulation should last for
+  final float simulation_length = 2000*4*2; // How many frames the simulation should last for
   
   boolean visible = false; // Whether or not there are any roombas in the testing array that we can draw
   int simulation_speed = 1; // How many ms to wait between simulation steps (if visible)
@@ -61,7 +61,7 @@ class NicheBreeder extends Thread {
 
 
   float calculate_roomba_score(Roomba r) {
-    return r.dust_eaten; // - r.num_collisions*10*(dusts.length / 3000.0);
+    return r.dust_eaten - r.num_collisions/10000;
   }
 
   // Sort solutions by their score, requires them to already be tested
@@ -241,8 +241,8 @@ class NicheBreeder extends Thread {
       // But if it gets waaaay too small, then this indicates making the lr smaller isn't helping 
       // the roombas evolve. Maybe they've found the best solution, but it's probably premature convergence.
       // If it's the latter raising the lr will help, if it's the former reseting the lr won't hurt (because of ratcheting)
-      if (lr < 0.000001) // Let's not pretend floating point multiplication isn't cringe--
-         lr = 0.0001f; // Just fuck my shit up bro just make it shitty.
+      if (lr < 0.0001) // Let's not pretend floating point multiplication isn't cringe--
+         lr = 0.01f; // Just fuck my shit up bro just make it shitty.
         
       // If we use up all our momentum generations, then we reset back to the best generation we know
       if (moment_gens_used > num_momentum_gens) {
