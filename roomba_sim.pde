@@ -34,13 +34,10 @@ void draw() {
 
 void keyPressed() {
   if (key == 61) 
-    rb.simulation_speed /= 2;
-
+    rb.simulation_speed = 0;
 
   if (key == 45) {
-    rb.simulation_speed *= 2;
-    if (rb.simulation_speed < 0.1)
-      rb.simulation_speed = 1;
+    rb.simulation_speed = 1;
   }
 
 }
