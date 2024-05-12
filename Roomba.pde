@@ -92,10 +92,10 @@ class Roomba {
      */
      
       float[] input_vector = {
-          get_num_col_moving_avg(),
-          (360 * (this.bearing / 2 * PI) + random(0, 5)), //360, 
+          -(this.x - height/2) / height,
+          360 * (this.bearing / 2 * PI), //+ random(0, 5)), //360, 
           time_steps / max_time_steps, 
-          1, //-(this.x + random(0, 2*speed) - width/2) / width, 
+          -(this.x - width/2) / width, 
           num_collisions,
           (time_steps - ttl_collision),
           sin(time_steps)
@@ -153,8 +153,8 @@ class Roomba {
      // Keep track of the score so we know who to send to Android Hell
      check_dust();
 
-    float dx = sin(bearing) * speed + random(-0.5, 0.5);
-    float dy = cos(bearing) * speed + random(-0.5, 0.5);
+    float dx = sin(bearing) * speed; // + random(-0.5, 0.5);
+    float dy = cos(bearing) * speed ; //+ random(-0.5, 0.5);
     
     // Move in the X direction except if we collide undo that
     this.x += dx;  

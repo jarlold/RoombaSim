@@ -41,3 +41,10 @@ needed on a Roomba, and reduce its overall cost, and environmental impact.
 <br><br>
 I found a Roomba in the garbage and I intend to wire it up to a microprocessor
 and see how well this code actually works in real life.
+
+
+## TODO:
+- Cross over
+- Randomly generate rooms
+- Roomba loading from saved .roomba files
+- Change population split (i.e 30:70 or 20:80 instead of 50:50)

@@ -4,25 +4,23 @@ class NicheBreeder extends Thread {
   // Basic Settings
   final int INPUT_VECTOR_SIZE = 7;
   final int OUTPUT_VECTOR_SIZE = 1;
-  final int scale_factor = 3; // for playing around with the size of the neural network
+  final int scale_factor = 1; // for playing around with the size of the neural network
   final int[] LAYER_SIZES = {INPUT_VECTOR_SIZE, 10*scale_factor, 12*scale_factor, 14*scale_factor, 8*scale_factor, OUTPUT_VECTOR_SIZE};
   final ActivationFunction[] LAYER_ACTIVATIONS = {ActivationFunction.TANH};
   
   final float spawn_location_x = 400; // Where to shitout the roombas
   final float spawn_location_y = 100; 
-  final float simulation_length = 2000*4*2; // How many frames the simulation should last for
+  final float simulation_length = 2000*4; // How many frames the simulation should last for
   
   boolean visible = false; // Whether or not there are any roombas in the testing array that we can draw
-  int simulation_speed = 1; // How many ms to wait between simulation steps (if visible)
+  int simulation_speed = 2; // How many ms to wait between simulation steps (if visible)
   
-  final int num_dusts = 75;
-
   //Meta parameters
   final int break_after_n_generations = 1000000;
-  final int population_size = 150; //250;
-  final float starting_lr = 0.1f; // How big the changes we make to our mutations should be
-  final int starting_mutation_rate = 1; // How many mutations we should make per mutant roomba
-  final int num_simulation_samples = 3; // How many times to run the simulation for each roomba, the score will be an average of the performance.
+  final int population_size = 2; //250;
+  final float starting_lr = 10f; // How big the changes we make to our mutations should be
+  final int starting_mutation_rate = 200; // How many mutations we should make per mutant roomba
+  final int num_simulation_samples = 1; // How many times to run the simulation for each roomba, the score will be an average of the performance.
   final int num_momentum_gens = 5; // How many generations can fail before we reset to the previous best known
   
   // Runtime variables
@@ -37,14 +35,21 @@ class NicheBreeder extends Thread {
   public NicheBreeder (ArrayList<ArrayList<Wall>> rooms, boolean visible) {
     this.rooms = rooms;
     this.visible = visible;
-    dusts = generate_dust(num_dusts);
+    dusts = generate_dust();
   }
   
   
   // Generate an array of fresh dust
-  Dust[] generate_dust(int amount) {
-    Dust[] new_dusts = new Dust[amount];
-    for (int i = 0; i < amount; i++) new_dusts[i] = new Dust(random(width), random(height));
+  Dust[] generate_dust() {
+    int added = 0;
+    int frequency = 40;
+    Dust[] new_dusts = new Dust[(width/frequency)*(height/frequency)];
+    for (int i = 0; i < width/frequency; i++) {
+      for (int j = 0; j < height/frequency; j++) {
+        new_dusts[added] = new Dust(frequency*i, frequency*j);
+        added++;
+      }
+    }
     return new_dusts;
   }
   
@@ -77,11 +82,12 @@ class NicheBreeder extends Thread {
     // It should be safe to draw them again, now that we've finished generating Roomba objects
     // from the neural networks
     this.currently_testing = true;
-    
+    float random_turning;
     
     //TODO: Jarlold rolls worst `quadruple iteration`. Asked to leave `room cycle rotation`. (its slow fix it somehow)
     // Run them all through the simulation num_simulation_samples times
     for (int j = 0; j < num_simulation_samples; j++) {
+      random_turning = radians(random(0, 360));
       // And each cycle we'll test them on each of the rooms...
       for (ArrayList<Wall> room : rooms) {
         this.walls = room; // We'll set this to point to the current room so the draw thread can find it
@@ -89,10 +95,11 @@ class NicheBreeder extends Thread {
         // Each simulation run, we will give the neural networks new bodies
         for (int i = 0; i < solutions.length; i++) {
             roombas_being_tested[i] = neural_network_to_roomba(solutions[i]);
+            //roombas_being_tested[i].bearing += random_turning;
         }
       
         //Randomize the dust particles in the room
-        this.dusts = generate_dust(num_dusts);
+        this.dusts = generate_dust();
         
         // Finally run the actual simulation (We'll run through each roomba in parallel)
         for (int i = 0; i < simulation_length; i++) {
@@ -123,10 +130,11 @@ class NicheBreeder extends Thread {
   // Creates an array of fresh NeuralNetworks with random weights
   NeuralNetwork[] create_first_generation() {
     NeuralNetwork[] new_gen = new NeuralNetwork[population_size];
+    NeuralNetwork adam = new NeuralNetwork(LAYER_SIZES);
     // We'll use the same architecture for all the roombas for now  
     // This is because I intend to migrate to sexual reproduction soon (tm)                                                    
     for (int i = 0; i < population_size; i++) {
-      new_gen[i] = new NeuralNetwork(LAYER_SIZES);
+      new_gen[i] = new NeuralNetwork(adam);
     }       
     return new_gen;
   }
@@ -138,6 +146,11 @@ class NicheBreeder extends Thread {
       mutant.tweak(lr);
     return mutant;
   }
+  
+  // ROOMBA SEX ROOMBA SEX ROOMBA SEX ROOMBA SEX
+  //NeuralNetwork create_offspring(NeuralNetwork m, NeuralNetwork f) {
+    
+  //}
   
   
   NeuralNetwork[] create_next_generation(NeuralNetwork[] previous_generation) {
@@ -198,8 +211,8 @@ class NicheBreeder extends Thread {
         
         // We have to actually clone the new generation or it'll just be a pointer to it and we'll slowly corrupt
         // it each iteration
-        best_gen = new NeuralNetwork[n_gen.length];
-        for (int i = 0; i < n_gen.length; i++) best_gen[i] = new NeuralNetwork(n_gen[i]);
+        //best_gen = new NeuralNetwork[n_gen.length];
+        //for (int i = 0; i < n_gen.length; i++) best_gen[i] = new NeuralNetwork(n_gen[i]);
         
         print("\n--- New Best Score Found ("); print(previous_best); print(") --- \n");
       } else {
@@ -240,12 +253,12 @@ class NicheBreeder extends Thread {
          lr = 0.01f; // Just fuck my shit up bro just make it shitty.
         
       // If we use up all our momentum generations, then we reset back to the best generation we know
-      if (moment_gens_used > num_momentum_gens) {
-        print("--- Exceeded Maximum Momentum Gens. Resetting... ---\n");
-        moment_gens_used = 0;
-        p_gen = new NeuralNetwork[n_gen.length];
-        for (int i = 0; i < n_gen.length; i++) p_gen[i] = new NeuralNetwork(best_gen[i]);
-      }
+      //if (moment_gens_used > num_momentum_gens) {
+      //  print("--- Exceeded Maximum Momentum Gens. Resetting... ---\n");
+      //  moment_gens_used = 0;
+      //  p_gen = new NeuralNetwork[n_gen.length];
+      //  for (int i = 0; i < n_gen.length; i++) p_gen[i] = new NeuralNetwork(best_gen[i]);
+      //}
         
       // And of course if we hit the maximum number of generations stop the simulations
       if ( num_generations > break_after_n_generations) {

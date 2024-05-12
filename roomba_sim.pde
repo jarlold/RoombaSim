@@ -1,6 +1,6 @@
 NicheBreeder rb ;
 void setup() {
-   randomSeed(42);
+   randomSeed(42+6);
    size(800, 600); 
    // If we crash, don't bleach my eyeballs
    background(0);
@@ -37,7 +37,7 @@ void keyPressed() {
     rb.simulation_speed = 0;
 
   if (key == 45) {
-    rb.simulation_speed = 1;
+    rb.simulation_speed = 2;
   }
 
 }
