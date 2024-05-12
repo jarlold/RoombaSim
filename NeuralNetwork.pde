@@ -17,7 +17,9 @@ class NeuralNetwork {
   }
   
   public NeuralNetwork(NeuralNetwork clone_me) {
-    this.layers = clone_me.layers.clone();
+    this.layers = new Layer[clone_me.layers.length];
+    for (int i = 0; i < this.layers.length; i ++)
+      this.layers[i] = new Layer(clone_me.layers[i]);
   }
 
     
@@ -121,5 +123,4 @@ class NeuralNetwork {
    cont[0] = this.toString();
    saveStrings(filepath, cont);
  }
-  
 }

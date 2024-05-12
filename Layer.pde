@@ -1,13 +1,8 @@
 class Layer {
-  
-  
   ActivationFunction activ_func;
   public float[][] weights;
   public int input_size;
-  public int output_size;
-  
-  
-  
+  public int output_size; 
   
   public Layer (int input_size, int output_size, ActivationFunction activ_func) {
     
@@ -28,10 +23,16 @@ class Layer {
     }
   }
   
+  public Layer (Layer clone_me) {
+    this.weights = clone_me.weights.clone();
+    this.input_size = clone_me.input_size;
+    this.output_size = clone_me.output_size;
+    this.activ_func = clone_me.activ_func;
+  }
+  
   
   float[] forward(float[] in) {
     float[] sums = new float[output_size];
-    
     
     /*
      This isn't how matrix-vector multiplication is done but i forget what it's actually called
@@ -92,6 +93,17 @@ class Layer {
 
   public float[][] get_weights() {
     return this.weights;
+  }
+  
+  public String getActivationFunctionName() {
+    if (this.activ_func == ActivationFunction.TANH)
+      return "TANH";
+    else if (this.activ_func == ActivationFunction.SIGMOID)
+      return "SIGMOID";
+    else if (this.activ_func == ActivationFunction.RELU)
+      return "RELU";
+    else
+      return "NONE";
   }
   
 }
