@@ -1,8 +1,8 @@
 import java.util.Arrays;
 class NicheBreeder extends Thread{
   // metaparameters
-  final int simulation_steps = 2000*4;
-  final int[] neural_network_shape = {3, 3, 4, 5, 4, 4};
+  final static int simulation_steps = 2000*2;
+  final int[] neural_network_shape = {4, 3, 4, 5, 4, 4};
   final int output_size = 2;
   final int pop_size = 16;
   double lr = 1d;
@@ -61,13 +61,25 @@ class NicheBreeder extends Thread{
   }
   
   private NeuralNetwork[] create_initial_generation() {
-    NeuralNetwork adam = new NeuralNetwork(neural_network_shape, output_size);
+    //// It is MUCH better to start with entirely distinct random Roombas, but it makes it harder to debug
+    //// because even if the mutations are crud, you still get decent roombas (just from the initial selection)
+    //NeuralNetwork[] new_gen = new NeuralNetwork[pop_size];
+
+    //// We will make our first roomba by shaping him out of clay
+    //NeuralNetwork adam = new NeuralNetwork(neural_network_shape, output_size);
+    //new_gen[0] = adam;
+    
+    //// Then from his rib we will form the other Roombas.
+    //for (int i = 1; i < pop_size; i++) {
+    //  new_gen[i] = adam.create_clone();
+    //  new_gen[i].tweak(this.lr);
+    //}
+    
+    // Alternatively we can just shotgun spray, it's way faster
     NeuralNetwork[] new_gen = new NeuralNetwork[pop_size];
-    new_gen[0] = adam;
-    for (int i = 1; i < pop_size; i++) {
-      new_gen[i] = adam.create_clone();
-      new_gen[i].tweak(this.lr);
-    }
+    for (int i = 0; i < new_gen.length; i++)
+      new_gen[i] = new NeuralNetwork(neural_network_shape, output_size);
+    
     
     return new_gen;
   }

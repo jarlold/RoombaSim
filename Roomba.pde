@@ -35,11 +35,12 @@ class Roomba {
     circle(this.x, this.y, this.radius*2);
     fill(255);
     circle(this.x + (this.radius-this.radius/2)*cos(this.bearing), this.y + (this.radius-this.radius/2)*sin(this.bearing), this.radius/2);
-    text(this.bearing, this.x, this.y);
+    fill(0);
+    text(this.dusts_eaten.size(), this.x-5, this.y);
   }
   
   private float get_bearing_adjustement() {
-    double[] input = {num_collisions, -num_collisions, this.bearing};
+    double[] input = {num_collisions, this.ticks/NicheBreeder.simulation_steps, this.bearing, sin(this.ticks/10)};
     double[] output = this.instincts.forward(input);
     return radians((float) output[0] ) * MAX_ROOMBA_TURN_SPEED;
   }
