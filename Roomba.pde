@@ -1,9 +1,11 @@
 class Roomba {
-  final float MAX_ROOMBA_TURN_SPEED = radians(5);
+  final float MAX_ROOMBA_TURN_SPEED = radians(15);
   float v = 4;
   float x, y;
   float radius = 20;
   color c;
+  
+  // Ya boy the neural network
   NeuralNetwork instincts;
   
   // Coordinates of all the dust the Roomba has eaten
@@ -33,12 +35,13 @@ class Roomba {
     circle(this.x, this.y, this.radius*2);
     fill(255);
     circle(this.x + (this.radius-this.radius/2)*cos(this.bearing), this.y + (this.radius-this.radius/2)*sin(this.bearing), this.radius/2);
+    text(this.bearing, this.x, this.y);
   }
   
   private float get_bearing_adjustement() {
-    double[] input = {num_collisions, -num_collisions, this.x, -this.x};
+    double[] input = {num_collisions, -num_collisions, this.bearing};
     double[] output = this.instincts.forward(input);
-    return radians((float) output[0]);
+    return radians((float) output[0] ) * MAX_ROOMBA_TURN_SPEED;
   }
   
   public void tick() {
@@ -87,8 +90,8 @@ class Roomba {
   }
   
   public void turn(float amount) {
-    if (abs(amount) > MAX_ROOMBA_TURN_SPEED)
-      amount = MAX_ROOMBA_TURN_SPEED * abs(amount)/amount;
+    //if (abs(amount) > MAX_ROOMBA_TURN_SPEED)
+    //  amount = MAX_ROOMBA_TURN_SPEED * abs(amount)/amount;
     this.bearing += amount;
   }
   

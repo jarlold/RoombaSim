@@ -4,7 +4,7 @@ class NeuralNetwork {
   final int[] sizes;
   
   // This is used to sort the solutions later on.
-  public int score;
+  public float score;
   
   public NeuralNetwork(int[] sizes, int output_size) {
     // Store the size array, for cloning mostly
@@ -35,14 +35,15 @@ class NeuralNetwork {
     double[][] l = new double[w][h];
     for (int i = 0; i < w; i++)
       for (int j = 0; j < h; j++)
-        l[i][j] = random(-1, 1);
+        l[i][j] = random(-100, 100);
     return l;
   }
   
   public double[] forward(double[] input) {
     double[] output = input.clone();
-    for (int i = 0; i < weights.length; i++)
+    for (int i = 0; i < weights.length-1; i++)
       output = tanh_vector(vector_matrix_multiplication(output, this.weights[i]));
+    output = vector_matrix_multiplication(output, this.weights[this.weights.length-1]);
       
     return output;
   }

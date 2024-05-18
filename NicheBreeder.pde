@@ -2,9 +2,9 @@ import java.util.Arrays;
 class NicheBreeder extends Thread{
   // metaparameters
   final int simulation_steps = 2000*4;
-  final int[] neural_network_shape = {4, 3, 4, 5, 4, 4};
+  final int[] neural_network_shape = {3, 3, 4, 5, 4, 4};
   final int output_size = 2;
-  final int pop_size = 20;
+  final int pop_size = 16;
   double lr = 1d;
   
   // Runtime variables
@@ -42,8 +42,10 @@ class NicheBreeder extends Thread{
   
   public void test_solutions(NeuralNetwork[] solutions) {
     // Give each neural network a roomba body we can test
-    for (int i = 0; i < solutions.length; i++) 
+    for (int i = 0; i < solutions.length; i++) {
       roombas_being_tested[i] = new Roomba(50.0f, 50.0f, solutions[i], walls, dusts);
+      roombas_being_tested[i].bearing -= radians(90);
+    }
       
     // Do the simulation
     for (int i = 0; i < simulation_steps; i++) {
@@ -80,6 +82,7 @@ class NicheBreeder extends Thread{
     for (int i = 0; i < pop_size/2; i++) {
       new_generation[i + pop_size/2] = previous_generation[i].create_clone();
       new_generation[i + pop_size/2].tweak(this.lr);
+      //new_generation[i+pop_size/2] = new NeuralNetwork(neural_network_shape, output_size);
     }
     return new_generation;
   }
@@ -88,7 +91,7 @@ class NicheBreeder extends Thread{
     Arrays.sort( solutions, (o1, o2) -> { if (o1.score > o2.score) return -1; else if(o1.score < o2.score) return 1; else return 0; } );
   }
   
-  public void print_log(NeuralNetwork[] current_gen, Integer best_score, int num_generations) {
+  public void print_log(NeuralNetwork[] current_gen, Float best_score, int num_generations) {
     print("Generation #" + Integer.toString(num_generations), "completed:\n");
     print("GOAT Score:", best_score, "\n");
     print("Best mutant:", current_gen[current_gen.length/2].score, "\n");
@@ -97,7 +100,7 @@ class NicheBreeder extends Thread{
   
   public void run() {
     NeuralNetwork[] current_gen = create_initial_generation();
-    Integer best_score = null;
+    Float best_score = null;
     int num_generations = 0;
     
     // Whether or not the last 5 generations were successes. Not chronological.
@@ -115,13 +118,17 @@ class NicheBreeder extends Thread{
         score_samples[num_generations % score_samples.length ] = 0;
       }
       
-      // If at least one generation of the last 5 succeded, raise the mutation rate.
+      // If at least one generation of the last 5 succeded, raise the mutation rate (until we get more failures)
+      // if the mutation rate gets too small though, then raise it- or nothing will evolves
       int successes = 0;
       for (int i : score_samples) successes += i;
       if (successes >= 1)
         this.lr *= 1.1;
       else
         this.lr /= 1.1;
+      
+      if (this.lr < 1E-6)
+        this.lr = 1;
       
       // Print the log
       print_log(current_gen, best_score, num_generations);
