@@ -1,126 +1,87 @@
 class NeuralNetwork {
- 
-  Layer[] layers;
-    
-  // This is only here because sorting things in java is annoying
-  public float score;
-    
- public NeuralNetwork(int[] layer_sizes) {
-    layers = new Layer[layer_sizes.length-1];                                                                       
-    for (int i = 0; i < layer_sizes.length-1; i++) { // -1 because the last size is actually useless (its the output layer size
-       layers[i] = new Layer(layer_sizes[i], layer_sizes[i+1], ActivationFunction.TANH);                                    
-    } 
- }
-    
-  public NeuralNetwork(Layer[] layers) {
-   this.layers = layers; 
-  }
+  double[][][] weights;
+  final int output_size;
+  final int[] sizes;
   
-  public NeuralNetwork(NeuralNetwork clone_me) {
-    this.layers = new Layer[clone_me.layers.length];
-    for (int i = 0; i < this.layers.length; i ++)
-      this.layers[i] = new Layer(clone_me.layers[i]);
-  }
+  // This is used to sort the solutions later on.
+  public int score;
+  
+  public NeuralNetwork(int[] sizes, int output_size) {
+    // Store the size array, for cloning mostly
+    this.sizes = sizes;
+    
+    // Initialize the weights in accordance to the sizes array
+    this.weights = new double[sizes.length][][];
+    for (int i = 0; i < sizes.length-1; i++) {
+      weights[i] = initialize_layer(sizes[i], sizes[i+1]);
+    }
+    weights[sizes.length-1] = initialize_layer(sizes[sizes.length-1], output_size);
 
-    
-  public float[] forward(float[] in) {
-       float[] working = in;
-       for (Layer l : this.layers) 
-         working = l.forward(working);
-       return working;
-    }
-    
-    
-  public void tweak(float lr) {
-    // Modify a weight by some random amount
-    int l = int(random(0, layers.length));
-    layers[l].tweak(lr);
-    
-    // Choose to randomly drop or add a layer
-    //boolean drop = (int(random(0, 1)) == 0);
+    this.output_size = output_size;
   }
   
-  public float[][][] get_as_matrix() {
-    float[][][] matrix = new float[layers.length][][];
-    for (int i = 0 ; i < layers.length; i++) {
-      matrix[i] = layers[i].get_weights();
+  public NeuralNetwork create_clone() {
+    // After last time I'm not fucking around. We're clone EVERY. SINGLE. WEIGHT. EXACTLY.
+    NeuralNetwork clone = new NeuralNetwork(this.sizes, this.output_size);
+    for (int i = 0; i < weights.length; i++)
+      for (int j = 0; j < weights[i].length; j++)
+        for (int k = 0; k < weights[i][j].length; k++)
+          clone.weights[i][j][k] = this.weights[i][j][k];
+    return clone;
+  }
+  
+  // Creates a guassian random matrix of shape wxh
+  private double[][] initialize_layer(int w, int h) {
+    double[][] l = new double[w][h];
+    for (int i = 0; i < w; i++)
+      for (int j = 0; j < h; j++)
+        l[i][j] = random(-1, 1);
+    return l;
+  }
+  
+  public double[] forward(double[] input) {
+    double[] output = input.clone();
+    for (int i = 0; i < weights.length; i++)
+      output = tanh_vector(vector_matrix_multiplication(output, this.weights[i]));
+      
+    return output;
+  }
+  
+  public void tweak(double lr) {
+    double[][] rand_layer = weights[(int) random(0, weights.length)];
+    rand_layer[(int) random(0, rand_layer.length)][(int) random(0, rand_layer[0].length)] += random((float) -lr, (float) lr);
+  }
+  
+  private double[] vector_matrix_multiplication(double[] vector, double[][] matrix) {
+    /*
+      w1 w2  w3  w4      i1      w1 *i1 + w5 *i2 + w9  *i3
+      w5 w6  w7  w8   *  i2   =  w2 *i1 + w6 *i2 + w10 *i3
+      w9 w10 w11 w12     i3      w3 *i1 + w7 *i2 + w11 *i3
+                                 w4 *i1 + w8 *i2 + w12 *i3
+   */
+    if (vector.length != matrix.length) {
+      // Error handling in java is annoying so we're just gonna print this out.
+      print("Warning: Inproper shapes for matrix vector multiplication.\n");
+      print(matrix.length, "x", matrix[0].length, "*", vector.length);
     }
-    return matrix;
-  }
-  
-  float get_distance(NeuralNetwork o) {
-    // I'm not really sure about this distancing function, I wrote it in DB class bc i was bored
-    // It follows the simple constraints below:
-    // - Distance(me, me) == 0
-    // - Distance(me, 2*me) < Distance(me, 3*me)
-    // I think it'll do the trick but I don't think it's perfect
-  
-     // S = nxnxn matrix
-     // O = nxnxn matrix
-     float[][][] our_matrix = this.get_as_matrix();
-     float[][][] other_matrix = o.get_as_matrix();
-     
-     // Sum of difference of squares for each element in the matrix. squared
-     // Don't mind me I'm just gonna triple iterate real quick \(X_X \) !!!
-     float sum = 0;
-     for (int i = 0; i < other_matrix.length; i++)
-       for (int j = 0; j < other_matrix[i].length; j++)
-         for(int k = 0; k < other_matrix[i][j].length; k++)
-           sum += pow(other_matrix[i][j][k] - our_matrix[i][j][k], 2);
-           
-           
-      // This is all equivalent to if we flattened out both matrices and then did
-      // dist = sqrt( (a1 -b1)^2 + (a2 - b2)^2 ... (an - bn)^2 )
-      // Like a REALLY BIG euclidean distance of 2 long ass 1d matrices
-      return sqrt(sum);
-  }
-
-  
-  void draw(float x, float y, float scale) {
-   float centre_y = (layers[0].input_size * scale * 1.25)/2;
-   for (int j = 0; j < layers[0].input_size; j++) {
-      circle(x + scale * 4 * -1, y - j * scale * 1.25 + centre_y, scale); 
-   }
+      
+    // Create an array to hold the outputs, initialize everything in there as 0
+    double[] output = new double[matrix[0].length];
+    for (int i = 0; i < output.length; i++) output[i] = 0;
     
-    for (int i =0; i < layers.length; i++) {       
-        // Draw the circles that represent our nodes
-        centre_y = (layers[i].output_size * scale * 1.25)/2;
-        for (int j = 0; j < layers[i].output_size; j++) {
-           circle(x + scale * 4 * i, y - j * scale * 1.25 + centre_y, scale); 
-        }
-    }
-    
- }
- 
- public String toString() {
-  String output = "LAYERS:\n"; // Windows users can eat my shorts \n for life \n gang 
-  
-  // First we'll output the structure of the network. This could be inferred, but its not much data and
-  // will make reading the neural network back much easier.
-  for (Layer l : this.layers)
-    output += "HIDDEN LAYER " + l.getActivationFunctionName() + " " + Integer.toString(l.weights.length) + " " + Integer.toString(l.weights[0].length) + "\n";
-  
-  // Now we'll print out their actual values
-  output += "\nWEIGHTS\n";
-  
-  // Then print out the weights something like this:
-  // 1 1 1 1 1 1 | 2 2 2 2 2 | 3333
-  // 4 4 4 4 4 4 4 4 | 5 5 5 5 5 5 | 3 3
-  // Except thats not a valid network shape but you get the idea, right?
-  for (Layer l : this.layers) {
-    for (float[] weights : l.weights) {
-      for (float w : weights)
-        output += " " + Float.toString(w);
-      output += "\n";
-    }
-    output += "\n\n";
+    // Go through the columns of the matrix
+    for (int i = 0; i < output.length; i++)
+      for (int j = 0; j < matrix.length; j++)
+        output[i] += matrix[j][i] * vector[j];
+        
+    return output;
   }
-  return output;
- }
- 
- public void save(String filepath) {
-   String[] cont = new String[1];
-   cont[0] = this.toString();
-   saveStrings(filepath, cont);
- }
+  
+  // performs tanh on a vector
+  private double[] tanh_vector(double[] vector) {
+    for (int i = 0; i < vector.length; i++)
+      vector[i] = Math.tanh(vector[i]);
+    return vector;
+  }
+  
 }

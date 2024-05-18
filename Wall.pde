@@ -2,22 +2,26 @@ class Wall {
   float x, y, w, h;
   
   public Wall(float x, float y, float w, float h) {
-     this.x = x;
-     this.y = y;
-     this.w = w;
-     this.h = h;
-  }
- 
-  
-  public boolean is_roomba_colliding(Roomba r) {
-    return ( (r.x + r.size/2) > this.x) & (r.x - r.size/2) < (this.x + this.w) &
-           ( (r.y + r.size/2) > this.y) & (r.y - r.size/2) < (this.y + this.h);
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
   }
   
   public void draw() {
-     fill(255, 255, 255);
-     rect(x, y, w, h); 
-     fill(255);
+    rect(x, y, w, h);
   }
- 
+  
+  public boolean collides(Roomba r) {
+    float px = r.x;
+    float py = r.y;
+    px = max(px, this.x);
+    px = min(px, this.x + this.w);
+    py = max(py, this.y);
+    py = min(py, this.y + this.h);
+    
+    return pow((r.y - py), 2) + pow(r.x - px, 2) < pow(r.radius, 2);
+  }
+  
+  
 }
