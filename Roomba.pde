@@ -48,7 +48,6 @@ class Roomba {
   public void tick() {
     ticks++;
     this.turn(get_bearing_adjustement());
-    
     boolean did_collide = false;
     
     //TODO: This can be sped up significantly, somehow
@@ -67,7 +66,9 @@ class Roomba {
     }
     
     // Keep track of the number of collisions
-    if (did_collide) num_collisions += 1;
+    if (did_collide) {
+       num_collisions += 1;
+    }
     
     // Keep track of any dust it bumps into
     check_for_dust();

@@ -4,7 +4,7 @@ class NeuralNetwork {
   final int[] sizes;
   
   // This is used to sort the solutions later on.
-  public float score;
+  public float score = 0;
   
   public NeuralNetwork(int[] sizes, int output_size) {
     // Store the size array, for cloning mostly

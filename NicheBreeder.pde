@@ -3,37 +3,39 @@ class NicheBreeder extends Thread{
   // metaparameters
   final static int simulation_steps = 2000*2;
   final int[] neural_network_shape = {4, 3, 4, 5, 4, 4};
-  final int output_size = 2;
+  final int output_size = 1;
   final int pop_size = 16;
   double lr = 1d;
   
   // Runtime variables
   public Roomba[] roombas_being_tested;
-  public int render_delay = 10;
+  public int render_delay = 1;
   
   // Room definition
-  ArrayList<Wall> walls;
+  ArrayList<ArrayList<Wall>> rooms;
   Dust[] dusts;
+  ArrayList<Wall> current_room;
+  int dust_spacing = 40;
     
-  public NicheBreeder(ArrayList<Wall> walls) {
-    this.dusts = generate_dust_grid(width/40, height/40, 40);
-    this.walls = walls;
+  public NicheBreeder() {
+    this.dusts = generate_dust_grid();
+    rooms = get_rooms();
     this.roombas_being_tested = new Roomba[pop_size];  
   }
 
   public void draw() {
     for (Dust d: dusts) d.draw();
-    for (Wall w: walls) w.draw();
+    for (Wall w: current_room) w.draw();
     for (Roomba r: roombas_being_tested) r.draw();
   }
   
   // Generate an evenly spaced grid of dust particles wxh in size
-  public Dust[] generate_dust_grid(int w, int h, float every) {
-    Dust[] grid = new Dust[w*h];
+  public Dust[] generate_dust_grid() {
+    Dust[] grid = new Dust[dust_spacing*dust_spacing];
     int added = 0;
-    for (int i = 0; i < w; i++) {
-      for (int j = 0; j < h; j++) {
-        grid[added] = new Dust(every/2 + i*every, every/2 + j*every);
+    for (int i = 0; i < dust_spacing; i++) {
+      for (int j = 0; j < dust_spacing; j++) {
+        grid[added] = new Dust(dust_spacing/2.0f + i*dust_spacing, dust_spacing/2.0f + j*dust_spacing);
         added++;
       }
     }
@@ -41,23 +43,32 @@ class NicheBreeder extends Thread{
   }
   
   public void test_solutions(NeuralNetwork[] solutions) {
-    // Give each neural network a roomba body we can test
-    for (int i = 0; i < solutions.length; i++) {
-      roombas_being_tested[i] = new Roomba(50.0f, 50.0f, solutions[i], walls, dusts);
-      roombas_being_tested[i].bearing -= radians(90);
-    }
+    // Test them on every room
+    for (ArrayList<Wall> ws : rooms) {
+      // This is just so the draw thread has something pretty to look at
+      current_room = ws;
       
-    // Do the simulation
-    for (int i = 0; i < simulation_steps; i++) {
-      for (Roomba r: roombas_being_tested) {
-        r.tick();
-        delay(render_delay);
+      // We'll need new dust
+      this.dusts = generate_dust_grid();
+      
+      // Give each neural network a roomba body we can test
+      for (int i = 0; i < solutions.length; i++) {
+        roombas_being_tested[i] = new Roomba(400.0f, 300.0f, solutions[i], ws, dusts);
+        roombas_being_tested[i].bearing -= radians(90);
       }
+        
+      // Do the simulation
+      for (int i = 0; i < simulation_steps; i++) {
+        for (Roomba r: roombas_being_tested) {
+          r.tick();
+          delay(render_delay);
+        }
+      }
+      
+      // Judge the worth of their souls.
+      for (Roomba r: roombas_being_tested)
+        r.instincts.score += r.dusts_eaten.size() - r.num_collisions/100;
     }
-    
-    // Judge the worth of their souls.
-    for (Roomba r: roombas_being_tested)
-      r.instincts.score = r.dusts_eaten.size() - r.num_collisions/100;
   }
   
   private NeuralNetwork[] create_initial_generation() {
