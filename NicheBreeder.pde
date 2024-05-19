@@ -91,21 +91,22 @@ class NicheBreeder extends Thread{
     for (int i = 0; i < new_gen.length; i++)
       new_gen[i] = new NeuralNetwork(neural_network_shape, output_size);
     
-    
     return new_gen;
   }
   
   private NeuralNetwork[] create_next_generation(NeuralNetwork[] previous_generation) {
     NeuralNetwork[] new_generation = new NeuralNetwork[pop_size];
     sort_solutions(previous_generation);
+    
+    // Keep the originals. We don't actually need to re-test them unless the tester is stochastic,
+    // but let's not start optimizing things too soon. TODO: THIS
     for (int i = 0; i < pop_size/2; i++) {
       new_generation[i] = previous_generation[i].create_clone();
     }
     
     for (int i = 0; i < pop_size/2; i++) {
-      new_generation[i + pop_size/2] = previous_generation[i].create_clone();
+      new_generation[i + pop_size/2] = previous_generation[i].create_crossover_clone(new_generation[i], new_generation[pop_size/2 - i -1]);
       new_generation[i + pop_size/2].tweak(this.lr);
-      //new_generation[i+pop_size/2] = new NeuralNetwork(neural_network_shape, output_size);
     }
     return new_generation;
   }
@@ -117,7 +118,7 @@ class NicheBreeder extends Thread{
   public void print_log(NeuralNetwork[] current_gen, Float best_score, int num_generations) {
     print("Generation #" + Integer.toString(num_generations), "completed:\n");
     print("GOAT Score:", best_score, "\n");
-    print("Best mutant:", current_gen[current_gen.length/2].score, "\n");
+    print("Best This Gen:", current_gen[0].score, "\n");
     print("Learning Rate:", this.lr, "\n\n");
   }
   

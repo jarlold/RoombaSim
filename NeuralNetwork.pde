@@ -30,6 +30,26 @@ class NeuralNetwork {
     return clone;
   }
   
+  // I would make this static but that breaks Processing's PApplet code T_T
+  public NeuralNetwork create_crossover_clone(NeuralNetwork m, NeuralNetwork f) {
+    NeuralNetwork clone = new NeuralNetwork(m.sizes, m.output_size);
+    int split_point = (int) random(1, m.weights.length);
+    
+    // Copy up to split point on the first Neural Network
+    for (int i = 0; i < split_point; i++)
+      for (int j = 0; j < m.weights[i].length; j++)
+        for (int k = 0; k < m.weights[i][j].length; k++)
+          clone.weights[i][j][k] = m.weights[i][j][k];
+          
+    // Copy plast split point on the second Neural Network
+    for (int i = split_point; i < m.weights.length; i++)
+      for (int j = 0; j < f.weights[i].length; j++)
+        for (int k = 0; k < f.weights[i][j].length; k++)
+          clone.weights[i][j][k] = f.weights[i][j][k];
+          
+     return clone;
+  }
+  
   // Creates a guassian random matrix of shape wxh
   private double[][] initialize_layer(int w, int h) {
     double[][] l = new double[w][h];
