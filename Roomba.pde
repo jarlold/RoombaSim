@@ -9,11 +9,11 @@ class Roomba {
   NeuralNetwork instincts;
   
   // Coordinates of all the dust the Roomba has eaten
-  ArrayList<Dust> dusts_eaten = new ArrayList<>();
-  
+  boolean[][] bool_dusts = new boolean[1 + (int)width/40][1 + (int)height/40];
+  public int bool_dusts_eaten = 0;
+
   // Wall objects
   ArrayList<Wall> walls;
-  Dust[] dusts;
   
   // Metrics that the roomba will keep track of, some of these go to the neural network
   float bearing = 0;
@@ -21,13 +21,12 @@ class Roomba {
   int ticks = 0;
 
   
-  public Roomba (float x, float y, NeuralNetwork instincts, ArrayList<Wall> walls, Dust[] dusts) {
+  public Roomba (float x, float y, NeuralNetwork instincts, ArrayList<Wall> walls) {
     this.x = x;
     this.y = y;
     this.instincts = instincts;
     this.c = color((int) random(120, 255),(int) random(120, 255),(int) random(120, 255));
     this.walls = walls;
-    this.dusts = dusts;
   }
   
   public void draw() {
@@ -36,7 +35,16 @@ class Roomba {
     fill(255);
     circle(this.x + (this.radius-this.radius/2)*cos(this.bearing), this.y + (this.radius-this.radius/2)*sin(this.bearing), this.radius/2);
     fill(0);
-    text(this.dusts_eaten.size(), this.x-5, this.y);
+    text(this.bool_dusts_eaten, this.x-5, this.y);
+    
+    //for (int i = 0; i < bool_dusts.length; i++) {
+    //  for (int j = 0; j < bool_dusts[0].length; j++) {
+    //    if (bool_dusts[i][j]) {
+    //      fill(255, 125, 125);
+    //      circle(i*40, j*40, 10);
+    //    }
+    //  }
+    //}
   }
   
   private float get_bearing_adjustement() {
@@ -81,13 +89,14 @@ class Roomba {
   }
   
   private void check_for_dust() {
-    // TODO: This can be sped up A LOT by removing the Dust class, and instead
-    // computing the distance of the roomba to the nearest grid intersection
-    // as long as the grid size is larger than roomba size.
-    for (Dust d : dusts) {
-      if (d.collides(this) & !dusts_eaten.contains(d)) {
-        this.dusts_eaten.add(d);
-      }
+    // This isn't a perfect simulation but it is fast.
+    // It can be made better by accounting for the radius of the roomba - the rounded distance
+    // (right now the roombas pick up a square area of dust, but thats ok by my books)
+    int bool_dust_x = round( (this.x) / 40);
+    int bool_dust_y = round((int) (this.y)/ 40);
+    if (!bool_dusts[bool_dust_x][bool_dust_y]) {
+      bool_dusts_eaten++;
+      bool_dusts[bool_dust_x][bool_dust_y] = true;
     }
   }
   

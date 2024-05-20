@@ -9,7 +9,10 @@ class Wall {
   }
   
   public void draw() {
+    fill(255);
+    stroke(125);
     rect(x, y, w, h);
+    stroke(0);
   }
   
   public boolean collides(Roomba r) {
