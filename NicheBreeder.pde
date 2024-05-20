@@ -4,7 +4,7 @@ class NicheBreeder extends Thread{
   final static int simulation_steps = 2000*2;
   final int[] neural_network_shape = {4, 30, 40, 15, 40, 4};
   final int output_size = 1;
-  final int pop_size = 2;
+  final int pop_size = 20;
   double lr = 10d;
   
   // Runtime variables
@@ -23,9 +23,11 @@ class NicheBreeder extends Thread{
   }
 
   public void draw() {    
-    //if (safe_to_draw)
-      for (Roomba r: roombas_being_tested) r.draw();
-      
+    if (safe_to_draw) {
+      //for (Roomba r: roombas_being_tested) r.draw();
+      roombas_being_tested[0].draw();
+    }
+    
     for (Wall w: current_room)
       w.draw();
   }

@@ -9,7 +9,8 @@ class Roomba {
   NeuralNetwork instincts;
   
   // Coordinates of all the dust the Roomba has eaten
-  boolean[][] bool_dusts = new boolean[1 + (int)width/40][1 + (int)height/40];
+  final int dust_spacing = 20;
+  boolean[][] bool_dusts = new boolean[1 + (int)width/dust_spacing][1 + (int)height/dust_spacing];
   public int bool_dusts_eaten = 0;
 
   // Wall objects
@@ -37,14 +38,15 @@ class Roomba {
     fill(0);
     text(this.bool_dusts_eaten, this.x-5, this.y);
     
-    //for (int i = 0; i < bool_dusts.length; i++) {
-    //  for (int j = 0; j < bool_dusts[0].length; j++) {
-    //    if (bool_dusts[i][j]) {
-    //      fill(255, 125, 125);
-    //      circle(i*40, j*40, 10);
-    //    }
-    //  }
-    //}
+    // Draw a trail of the area he's eaten
+    for (int i = 0; i < bool_dusts.length; i++) {
+      for (int j = 0; j < bool_dusts[0].length; j++) {
+        if (bool_dusts[i][j]) {
+          fill(255, 125, 125);
+          circle(i*dust_spacing, j*dust_spacing, 10);
+        }
+      }
+    }
   }
   
   private float get_bearing_adjustement() {
@@ -92,8 +94,8 @@ class Roomba {
     // This isn't a perfect simulation but it is fast.
     // It can be made better by accounting for the radius of the roomba - the rounded distance
     // (right now the roombas pick up a square area of dust, but thats ok by my books)
-    int bool_dust_x = round( (this.x) / 40);
-    int bool_dust_y = round((int) (this.y)/ 40);
+    int bool_dust_x = round( (this.x) / (float) dust_spacing);
+    int bool_dust_y = round((int) (this.y)/ (float) dust_spacing);
     if (!bool_dusts[bool_dust_x][bool_dust_y]) {
       bool_dusts_eaten++;
       bool_dusts[bool_dust_x][bool_dust_y] = true;
