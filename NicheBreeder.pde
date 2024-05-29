@@ -1,10 +1,10 @@
 import java.util.Arrays;
 class NicheBreeder extends Thread{
   // metaparameters
-  final static int simulation_steps = 2000*2;
-  final int[] neural_network_shape = {4, 30, 40, 15, 40, 4};
+  private int simulation_steps = 6000;
+  final int[] neural_network_shape = {4, 4, 10, 4};
   final int output_size = 1;
-  final int pop_size = 20;
+  final int pop_size = 50;
   double lr = 10d;
   
   // Runtime variables
@@ -18,7 +18,7 @@ class NicheBreeder extends Thread{
     
   public NicheBreeder() {
     rooms = get_rooms();
-    //current_room = rooms.get(0); // just so the draw thread doesn't cry
+    current_room = rooms.get(0); // just so the draw thread doesn't cry
     this.roombas_being_tested = new Roomba[pop_size];  
   }
 
@@ -96,7 +96,8 @@ class NicheBreeder extends Thread{
     
     for (int i = 0; i < pop_size/2; i++) {
       new_generation[i + pop_size/2] = previous_generation[i].create_crossover_clone(new_generation[i], new_generation[pop_size/2 - i -1]);
-      new_generation[i + pop_size/2].tweak(this.lr);
+      new_generation[i + pop_size/2].tweak(this.lr);new_generation[i + pop_size/2].tweak(this.lr);new_generation[i + pop_size/2].tweak(this.lr);new_generation[i + pop_size/2].tweak(this.lr);new_generation[i + pop_size/2].tweak(this.lr);
+      
     }
     return new_generation;
   }
@@ -109,7 +110,8 @@ class NicheBreeder extends Thread{
     print("Generation #" + Integer.toString(num_generations), "completed:\n");
     print("GOAT Score:", best_score, "\n");
     print("Best This Gen:", current_gen[0].score, "\n");
-    print("Learning Rate:", this.lr, "\n\n");
+    print("Learning Rate:", this.lr, "\n");
+    print("Simulation Steps:", this.simulation_steps, "\n\n");
   }
   
   public void run() {
@@ -123,6 +125,10 @@ class NicheBreeder extends Thread{
     while (true) {
       // Test the roombas
       test_solutions(current_gen);
+      
+      // Slowly we will remove the time they have to clean the floor, but not too much
+      //if (simulation_steps > 3000)
+      //  simulation_steps -= 10;
       
       // Keep track of the best score
       if (best_score == null || current_gen[0].score > best_score) {
@@ -142,7 +148,7 @@ class NicheBreeder extends Thread{
         this.lr /= 1.1;
       
       if (this.lr < 1E-6)
-        this.lr = 1;
+        this.lr = 10;
       
       // Print the log
       print_log(current_gen, best_score, num_generations);

@@ -2,7 +2,6 @@ NicheBreeder nb;
 
 void setup() {
   size(800, 600);
-  //randomSeed(42+2);
   nb = new NicheBreeder();
   nb.start();
 }

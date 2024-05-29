@@ -41,7 +41,7 @@ class NeuralNetwork {
         for (int k = 0; k < m.weights[i][j].length; k++)
           clone.weights[i][j][k] = m.weights[i][j][k];
           
-    // Copy plast split point on the second Neural Network
+    // Copy paste paste the split point on the second Neural Network
     for (int i = split_point; i < m.weights.length; i++)
       for (int j = 0; j < f.weights[i].length; j++)
         for (int k = 0; k < f.weights[i][j].length; k++)

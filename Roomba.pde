@@ -47,10 +47,11 @@ class Roomba {
         }
       }
     }
+    
   }
   
   private float get_bearing_adjustement() {
-    double[] input = {num_collisions, this.ticks/NicheBreeder.simulation_steps, this.bearing, sin(this.ticks/10)};
+    double[] input = {num_collisions, this.ticks, this.bearing/(2*PI), sin(this.ticks/10)};
     double[] output = this.instincts.forward(input);
     return radians((float) output[0] ) * MAX_ROOMBA_TURN_SPEED;
   }
@@ -81,7 +82,8 @@ class Roomba {
     }
     
     // Keep track of any dust it bumps into
-    check_for_dust();
+    if (ticks % v == 0)
+      check_for_dust();
   }
   
   private boolean is_colliding() {
@@ -99,6 +101,8 @@ class Roomba {
     if (!bool_dusts[bool_dust_x][bool_dust_y]) {
       bool_dusts_eaten++;
       bool_dusts[bool_dust_x][bool_dust_y] = true;
+    } else {
+      bool_dusts_eaten --;
     }
   }
   
