@@ -1,3 +1,8 @@
+# Warning
+This project will be replaced by the a CUDA friendly C++ version available
+[here](https://github.com/jarlold/RoombaCUDA). I'm gonna leave this version
+up though because it's much easier to understand.
+
 # Roomba Sim
 Genetic algorithm to train a small vacuum cleaner to clean up after me.
 
